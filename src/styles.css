@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #e4e7df;
+  background: #070806;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #070806;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(rgba(139, 157, 72, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 157, 72, 0.03) 1px, transparent 1px),
+    #070806;
+  background-size: 32px 32px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+::selection {
+  color: #070806;
+  background: #b8d46b;
+}
+
+.thin-scrollbar {
+  scrollbar-color: #3f4937 #10130f;
+  scrollbar-width: thin;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: #10130f;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #3f4937;
+  border-radius: 999px;
+}
+
+@layer components {
+  .panel {
+    @apply border border-abi-line bg-abi-panel/95;
+  }
+
+  .metric-card {
+    @apply border border-abi-line bg-abi-panel p-3;
+  }
+
+  .control {
+    @apply h-9 w-full border border-abi-line bg-abi-black px-3 text-sm text-abi-text outline-none transition focus:border-abi-lime;
+  }
+
+  .icon-button {
+    @apply inline-flex h-9 w-9 items-center justify-center border border-abi-line bg-abi-panel text-abi-muted transition hover:border-abi-olive hover:text-abi-text disabled:opacity-40;
+  }
+
+  .primary-button {
+    @apply inline-flex h-9 items-center justify-center gap-2 border border-abi-lime bg-abi-lime px-3 text-sm font-semibold text-abi-black transition hover:bg-[#c7df7d] disabled:opacity-50;
+  }
+
+  .secondary-button {
+    @apply inline-flex h-9 items-center justify-center gap-2 border border-abi-line bg-abi-panel px-3 text-sm font-semibold text-abi-text transition hover:border-abi-olive hover:bg-abi-panel2 disabled:opacity-50;
+  }
+
+  .table-head {
+    @apply border-b border-abi-line bg-abi-black/80 px-3 py-2 text-left text-[11px] font-semibold uppercase text-abi-muted;
+  }
+
+  .table-cell {
+    @apply border-b border-abi-line/70 px-3 py-2 text-sm text-abi-text;
+  }
+}
