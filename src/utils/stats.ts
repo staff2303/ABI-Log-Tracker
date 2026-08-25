@@ -37,10 +37,14 @@ export const defaultFilters: RaidFilters = {
   squad: "all",
 };
 
-export function filterRaids(raids: Raid[], filters: RaidFilters): Raid[] {
+export function filterRaids(
+  raids: Raid[],
+  filters: RaidFilters,
+  resolveMapName: (raid: Raid) => string | null = (raid) => formatMapDisplayName(raid.basic.mapId, raid.basic.map),
+): Raid[] {
   return raids.filter((raid) => {
     const raidDate = formatDateInputValue(raid.basic.dateTime);
-    const raidMap = formatMapDisplayName(raid.basic.mapId, raid.basic.map);
+    const raidMap = resolveMapName(raid);
 
     return (
       (filters.date === "" || raidDate === filters.date) &&

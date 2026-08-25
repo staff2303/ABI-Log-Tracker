@@ -1,12 +1,14 @@
-import { BarChart3, Database, Shield, Upload } from "lucide-react";
+import { BarChart3, Database, Shield, Tags, Upload } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils/classNames";
 
 interface AppShellProps {
-  currentScreen: "import" | "dashboard" | "raid";
+  currentScreen: "import" | "dashboard" | "database" | "mappings" | "raid";
   children: ReactNode;
   onNavigateDashboard: () => void;
   onNavigateImport: () => void;
+  onNavigateDatabase: () => void;
+  onNavigateMappings: () => void;
 }
 
 export function AppShell({
@@ -14,6 +16,8 @@ export function AppShell({
   children,
   onNavigateDashboard,
   onNavigateImport,
+  onNavigateDatabase,
+  onNavigateMappings,
 }: AppShellProps) {
   return (
     <div className="min-h-screen bg-abi-black text-abi-text">
@@ -55,10 +59,30 @@ export function AppShell({
               <BarChart3 size={16} aria-hidden="true" />
               <span className="hidden sm:inline">Dashboard</span>
             </button>
-            <span className="hidden h-7 items-center gap-2 border border-abi-line bg-abi-panel px-2 text-[11px] uppercase text-abi-muted md:inline-flex">
+            <button
+              className={cn(
+                "hidden h-7 items-center gap-2 border px-2 text-[11px] uppercase transition md:inline-flex",
+                currentScreen === "mappings"
+                  ? "border-abi-olive bg-abi-panel2 text-abi-lime"
+                  : "border-abi-line bg-abi-panel text-abi-muted hover:border-abi-olive hover:text-abi-text",
+              )}
+              onClick={onNavigateMappings}
+            >
+              <Tags size={13} aria-hidden="true" />
+              Mappings
+            </button>
+            <button
+              className={cn(
+                "hidden h-7 items-center gap-2 border px-2 text-[11px] uppercase transition md:inline-flex",
+                currentScreen === "database"
+                  ? "border-abi-olive bg-abi-panel2 text-abi-lime"
+                  : "border-abi-line bg-abi-panel text-abi-muted hover:border-abi-olive hover:text-abi-text",
+              )}
+              onClick={onNavigateDatabase}
+            >
               <Database size={13} aria-hidden="true" />
-              Mock Data
-            </span>
+              Local DB
+            </button>
           </nav>
         </div>
       </header>

@@ -1,16 +1,18 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
-import { formatEquipmentDisplayName, formatWeaponDisplayName } from "../../data/displayNameResolver";
+import type { MappingResolver } from "../../data/mappingResolver";
 import type { KillDetail } from "../../types/raid";
 import { displayValue, emptyValue, formatId, formatLootValue, formatNumber } from "../../utils/format";
 import { OpponentBadge } from "../layout/StatusBadge";
 
 interface KillDetailsTableProps {
   kills: KillDetail[];
+  mappingResolver: MappingResolver;
+  onOpenMapping?: (id: string) => void;
 }
 
-export function KillDetailsTable({ kills }: KillDetailsTableProps) {
+export function KillDetailsTable({ kills, mappingResolver, onOpenMapping }: KillDetailsTableProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   if (kills.length === 0) {
@@ -64,8 +66,14 @@ export function KillDetailsTable({ kills }: KillDetailsTableProps) {
                   <td className="table-cell">
                     <OpponentBadge type={kill.opponentType} />
                   </td>
-                  <td className="table-cell max-w-56 truncate">{displayValue(formatWeaponDisplayName(kill.weaponId, kill.weapon))}</td>
-                  <td className="table-cell max-w-40 truncate">{displayValue(kill.bodyPart)}</td>
+                  <td className="table-cell max-w-56">
+                    <MappingName
+                      id={kill.weaponId}
+                      name={mappingResolver.weapon(kill.weaponId, kill.weapon)}
+                      onOpenMapping={onOpenMapping}
+                    />
+                  </td>
+                  <td className="table-cell max-w-40 truncate">{displayValue(mappingResolver.bodyPart(kill.hitBodyPartId, kill.bodyPart))}</td>
                   <td className="table-cell text-right font-mono">{formatNumber(kill.damage)}</td>
                   <td className="table-cell text-right font-mono">{formatNumber(kill.armorDamage)}</td>
                   <td className="table-cell text-right font-mono text-abi-lime">{formatLootValue(kill.opponentGearValue)}</td>
@@ -96,7 +104,7 @@ export function KillDetailsTable({ kills }: KillDetailsTableProps) {
                         <DetailItem label="Enemy Identity" value={formatId(kill.enemyIdentity)} />
                         <DetailItem label="Kill Timestamp" value={formatId(kill.killTimestamp)} />
                         <DetailItem label="Source Record" value={formatNumber(kill.sourceRecordIndex)} />
-                        <DetailItem label="Armor" value={displayValue(formatEquipmentDisplayName(kill.armorId, kill.opponentArmor))} />
+                        <DetailItem label="Armor" value={displayValue(mappingResolver.equipment(kill.armorId, kill.opponentArmor))} />
                       </div>
                     </td>
                   </tr>
@@ -107,6 +115,41 @@ export function KillDetailsTable({ kills }: KillDetailsTableProps) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function MappingName({
+  id,
+  name,
+  onOpenMapping,
+}: {
+  id: number | string | null;
+  name: string | null;
+  onOpenMapping?: (id: string) => void;
+}) {
+  const idText = formatId(id);
+  const isUnknown = Boolean(name?.startsWith("Unknown"));
+
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <span className="min-w-0 truncate">{displayValue(name)}</span>
+      {isUnknown && idText !== emptyValue && (
+        <>
+          <span className="shrink-0 font-mono text-[11px] text-abi-muted">{idText}</span>
+          {onOpenMapping && (
+            <button
+              className="shrink-0 border border-abi-line px-1.5 py-0.5 text-[10px] text-abi-lime hover:border-abi-olive"
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenMapping(idText);
+              }}
+            >
+              매핑
+            </button>
+          )}
+        </>
+      )}
+    </span>
   );
 }
 

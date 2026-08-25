@@ -19,6 +19,7 @@ function createStatsPreview(file: File): StreamingDecoderStats {
     unknownRecords: 0,
     headerRecords: 0,
     decodedBytes: 0,
+    fileHash: null,
   };
 }
 
@@ -36,6 +37,7 @@ const emptySnapshot: StreamingDecoderSnapshot = {
     unknownRecords: 0,
     headerRecords: 0,
     decodedBytes: 0,
+    fileHash: null,
   },
   errorMessage: null,
   raids: [],

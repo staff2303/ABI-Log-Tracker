@@ -18,6 +18,7 @@ describe("display name resolver", () => {
     expect(formatWeaponDisplayName("101010002")).toBe("M4A1 Assault Rifle");
     expect(formatWeaponDisplayName("101020003")).toBe("P90 Micro SMG");
     expect(formatWeaponDisplayName("104050001")).toBe("Molotov");
+    expect(formatWeaponDisplayName("792011304")).toBe("Arasaka Spec Ops Blade");
     expect(formatAmmoDisplayName("202030004")).toBe("5.56x45 M995");
     expect(formatAmmoDisplayName("202080006")).toBe("5.7×28 SS198");
     expect(formatAmmoDisplayName("202170001")).toBe("5.8×42 DVC12");

@@ -1,0 +1,49 @@
+import type { MappingCategory, MappingStatus } from "./mappingTypes";
+
+export const mappingCategories: MappingCategory[] = [
+  "weapon",
+  "ammo",
+  "armor",
+  "helmet",
+  "rig",
+  "backpack",
+  "headset",
+  "attachment",
+  "throwable",
+  "medical",
+  "provision",
+  "key",
+  "currency",
+  "loot",
+  "map",
+  "bodyPart",
+  "equipment",
+  "other",
+];
+
+export const mappingCategoryLabels: Record<MappingCategory, string> = {
+  weapon: "무기",
+  ammo: "탄약",
+  armor: "방어구",
+  helmet: "헬멧",
+  rig: "리그",
+  backpack: "가방",
+  headset: "헤드셋",
+  attachment: "부착물",
+  throwable: "투척물",
+  medical: "의료",
+  provision: "음식",
+  key: "열쇠",
+  currency: "화폐",
+  loot: "루팅",
+  map: "맵",
+  bodyPart: "부위",
+  equipment: "장비",
+  other: "기타",
+};
+
+export const mappingStatusLabels: Record<MappingStatus, string> = {
+  confirmed: "확인됨",
+  unconfirmed: "미확인",
+  conflict: "충돌",
+};

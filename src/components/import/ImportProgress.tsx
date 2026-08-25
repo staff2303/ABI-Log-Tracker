@@ -2,7 +2,7 @@ interface ImportProgressProps {
   progress: number;
 }
 
-const stages = ["File Stream", "Carry Buffer", "Decode Count"];
+const stages = ["Stream + Hash", "Decode", "Raid Parse"];
 
 export function ImportProgress({ progress }: ImportProgressProps) {
   return (

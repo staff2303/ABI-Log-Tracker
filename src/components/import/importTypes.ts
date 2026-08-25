@@ -3,6 +3,7 @@ export type ImportState =
   | "dragOver"
   | "processing"
   | "success"
+  | "duplicate"
   | "cancelled"
   | "unsupported"
   | "empty"

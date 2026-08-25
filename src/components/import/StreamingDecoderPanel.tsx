@@ -85,6 +85,14 @@ function DecoderStatCard({ item }: { item: DecoderStatItem }) {
   );
 }
 
+function formatHashPreview(fileHash: string | null): string {
+  if (!fileHash) {
+    return emptyValue;
+  }
+
+  return `${fileHash.slice(0, 12)}...${fileHash.slice(-8)}`;
+}
+
 export function StreamingDecoderPanel({ snapshot, onCancel }: StreamingDecoderPanelProps) {
   const { stats, status, errorMessage } = snapshot;
   const progressLabel = `${stats.progress.toFixed(1)}%`;
@@ -117,6 +125,13 @@ export function StreamingDecoderPanel({ snapshot, onCancel }: StreamingDecoderPa
       label: "처리 시간",
       value: formatMilliseconds(stats.elapsedMs),
       icon: <Clock size={14} aria-hidden="true" />,
+    },
+    {
+      label: "SHA-256",
+      value: formatHashPreview(stats.fileHash),
+      subValue: "중복 파일 검사",
+      icon: <ShieldCheck size={14} aria-hidden="true" />,
+      tone: stats.fileHash ? "green" : "default",
     },
     {
       label: "총 레코드",
@@ -157,7 +172,7 @@ export function StreamingDecoderPanel({ snapshot, onCancel }: StreamingDecoderPa
 
   return (
     <SectionPanel
-      title="Streaming Decoder"
+      title="Log Analysis"
       eyebrow="Local Worker"
       action={
         <StatusBadge tone={statusTone(status, stats)}>
@@ -183,7 +198,7 @@ export function StreamingDecoderPanel({ snapshot, onCancel }: StreamingDecoderPa
 
       {status === "processing" && (
         <button className="secondary-button mt-3 w-full border-abi-amber text-abi-amber" onClick={onCancel}>
-          Cancel Streaming Decoder
+          Cancel Analysis
         </button>
       )}
     </SectionPanel>

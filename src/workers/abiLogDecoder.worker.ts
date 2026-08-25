@@ -1,3 +1,4 @@
+import { Sha256 } from "../db/fileHash";
 import { decodePayloadForValidation, decodePayloadToBytes } from "../parser/decoder/abiLogCodec";
 import { RaidParser } from "../parser/raid/RaidParser";
 import type { DecoderWorkerRequest, DecoderWorkerResponse, StreamingDecoderStats } from "../types/streamDecoder";
@@ -31,6 +32,7 @@ function createInitialStats(file: File): StreamingDecoderStats {
     unknownRecords: 0,
     headerRecords: 0,
     decodedBytes: 0,
+    fileHash: null,
   };
 }
 
@@ -139,6 +141,7 @@ async function decodeFile(file: File): Promise<void> {
   const stats = createInitialStats(file);
   currentStats = stats;
   const parser = new RaidParser();
+  const hasher = new Sha256();
   let carry: ByteBuffer = new Uint8Array(0);
 
   try {
@@ -157,6 +160,7 @@ async function decodeFile(file: File): Promise<void> {
       }
 
       stats.processedBytes += value.byteLength;
+      hasher.update(value);
       carry = processCompleteLines(concatCarry(carry, value), stats, parser);
       maybePostProgress(stats);
     }
@@ -176,6 +180,7 @@ async function decodeFile(file: File): Promise<void> {
 
     refreshRuntimeStats(stats);
     stats.progress = 100;
+    stats.fileHash = hasher.digestHex();
     const result = parser.finalize(stats.totalRecords);
     postMessage({ type: "complete", stats: { ...stats }, raids: result.raids, debug: result.debug });
   } catch (error) {

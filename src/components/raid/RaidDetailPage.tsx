@@ -1,5 +1,6 @@
-import { ArrowLeft, Clock, Crosshair, Map, Target } from "lucide-react";
-import { formatMapDisplayName } from "../../data/displayNameResolver";
+import { ArrowLeft, Clock, Crosshair, Map, Target, Trash2 } from "lucide-react";
+import type { MappingResolver } from "../../data/mappingResolver";
+import type { StoredRaid } from "../../db/types";
 import type { Raid } from "../../types/raid";
 import {
   displayValue,
@@ -10,7 +11,6 @@ import {
 } from "../../utils/format";
 import { ResultBadge, SquadBadge } from "../layout/StatusBadge";
 import { SectionPanel } from "../layout/SectionPanel";
-import { DeathDetailPanel } from "./DeathDetailPanel";
 import { IncomingDamageList } from "./IncomingDamageList";
 import { InfoGrid } from "./InfoGrid";
 import { KillDetailsTable } from "./KillDetailsTable";
@@ -20,11 +20,14 @@ import { SurvivalPanel } from "./SurvivalPanel";
 import { TeamPanel } from "./TeamPanel";
 
 interface RaidDetailPageProps {
-  raid: Raid | null;
+  raid: Raid | StoredRaid | null;
+  mappingResolver: MappingResolver;
   onBack: () => void;
+  onDelete?: (raid: StoredRaid) => void;
+  onOpenMapping?: (id: string) => void;
 }
 
-export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
+export function RaidDetailPage({ raid, mappingResolver, onBack, onDelete, onOpenMapping }: RaidDetailPageProps) {
   if (!raid) {
     return (
       <SectionPanel title="Raid Detail" eyebrow="Not Found">
@@ -39,7 +42,7 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
     );
   }
 
-  const mapName = formatMapDisplayName(raid.basic.mapId, raid.basic.map);
+  const mapName = mappingResolver.map(raid.basic.mapId, raid.basic.map);
 
   return (
     <div className="space-y-4">
@@ -108,6 +111,24 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
             />
           </SectionPanel>
 
+          {isStoredRaid(raid) && isDebugMode() && (
+            <SectionPanel title="DB Metadata" eyebrow="Debug">
+              <InfoGrid
+                columns="four"
+                items={[
+                  { label: "Match Key", value: raid.matchKey },
+                  { label: "Identity Type", value: raid.matchIdentityType },
+                  { label: "Parser Version", value: raid.parserVersion },
+                  { label: "Source Files", value: formatNumber(raid.sourceFileIds.length) },
+                  { label: "Created", value: formatLongDateTime(raid.createdAt) },
+                  { label: "Updated", value: formatLongDateTime(raid.updatedAt) },
+                  { label: "Completeness", value: formatNumber(raid.completeness.score) },
+                  { label: "Conflicts", value: formatNumber(raid.mergeMeta?.conflicts?.length ?? 0) },
+                ]}
+              />
+            </SectionPanel>
+          )}
+
           <SectionPanel title="전투" eyebrow="Combat">
             <InfoGrid
               columns="four"
@@ -125,20 +146,33 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
           </SectionPanel>
 
           <SectionPanel title="킬 상세" eyebrow="Kills">
-            <KillDetailsTable kills={raid.kills} />
+            <KillDetailsTable kills={raid.kills} mappingResolver={mappingResolver} onOpenMapping={onOpenMapping} />
           </SectionPanel>
 
-          <SectionPanel title="받은 피해 상세" eyebrow="Incoming Damage">
-            <IncomingDamageList incomingDamage={raid.incomingDamage} />
+          <SectionPanel title="받은 피해 / 사망 상세" eyebrow="Incoming Damage">
+            <IncomingDamageList
+              incomingDamage={raid.incomingDamage}
+              death={raid.death}
+              mappingResolver={mappingResolver}
+              onOpenMapping={onOpenMapping}
+            />
           </SectionPanel>
         </div>
 
         <aside className="space-y-4">
-          {raid.death && <DeathDetailPanel death={raid.death} />}
           <LootPanel loot={raid.loot} />
           <SurvivalPanel survival={raid.survival} />
           <TeamPanel team={raid.team} />
           <RankPanel rank={raid.rank} />
+
+          {isStoredRaid(raid) && onDelete && (
+            <SectionPanel title="Record Management" eyebrow="Local DB">
+              <button className="secondary-button w-full justify-center border-abi-red/70 text-abi-red" onClick={() => onDelete(raid)}>
+                <Trash2 size={16} aria-hidden="true" />
+                기록 삭제
+              </button>
+            </SectionPanel>
+          )}
 
           <SectionPanel title="Map Visualization" eyebrow="Reserved">
             <div className="flex min-h-[160px] items-center justify-center border border-abi-line bg-abi-black p-3 text-center">
@@ -152,4 +186,12 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
       </div>
     </div>
   );
+}
+
+function isStoredRaid(raid: Raid | StoredRaid): raid is StoredRaid {
+  return "matchKey" in raid;
+}
+
+function isDebugMode(): boolean {
+  return typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "1";
 }

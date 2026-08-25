@@ -1,15 +1,16 @@
 import { ChevronRight } from "lucide-react";
-import { formatMapDisplayName } from "../../data/displayNameResolver";
+import type { MappingResolver } from "../../data/mappingResolver";
 import type { Raid } from "../../types/raid";
 import { emptyValue, formatDateTime, formatDuration, formatLootValue, formatNumber, formatPercent } from "../../utils/format";
 import { OpponentBadge, ResultBadge, SquadBadge } from "../layout/StatusBadge";
 
 interface RaidTableProps {
   raids: Raid[];
+  mappingResolver: MappingResolver;
   onRaidSelect: (raidId: string) => void;
 }
 
-export function RaidTable({ raids, onRaidSelect }: RaidTableProps) {
+export function RaidTable({ raids, mappingResolver, onRaidSelect }: RaidTableProps) {
   if (raids.length === 0) {
     return (
       <div className="border border-abi-line bg-abi-black px-4 py-10 text-center text-sm text-abi-muted">
@@ -41,7 +42,7 @@ export function RaidTable({ raids, onRaidSelect }: RaidTableProps) {
         </thead>
         <tbody>
           {raids.map((raid) => {
-            const mapName = formatMapDisplayName(raid.basic.mapId, raid.basic.map);
+            const mapName = mappingResolver.map(raid.basic.mapId, raid.basic.map);
 
             return (
               <tr

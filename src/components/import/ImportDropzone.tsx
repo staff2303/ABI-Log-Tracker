@@ -1,4 +1,4 @@
-import { CircleStop, FileUp, Play, RotateCcw, UploadCloud } from "lucide-react";
+import { CircleStop, FileUp, RotateCcw, UploadCloud } from "lucide-react";
 import { useRef } from "react";
 import { cn } from "../../utils/classNames";
 import { ImportProgress } from "./ImportProgress";
@@ -11,7 +11,6 @@ interface ImportDropzoneProps {
   fileName: string | null;
   onFileSelected: (file: File | null) => void;
   onDragStateChange: (dragging: boolean) => void;
-  onDemo: () => void;
   onReset: () => void;
   onCancel: () => void;
 }
@@ -22,7 +21,6 @@ export function ImportDropzone({
   fileName,
   onFileSelected,
   onDragStateChange,
-  onDemo,
   onReset,
   onCancel,
 }: ImportDropzoneProps) {
@@ -64,17 +62,13 @@ export function ImportDropzone({
           로그는 서버에 업로드되지 않고 브라우저에서 분석됩니다.
         </p>
         <p className="mt-1 text-xs text-abi-muted">
-          현재 단계는 Raid Parser가 아닌 Web Worker 기반 Streaming Decoder 프로토타입입니다.
+          Web Worker가 로그를 스트리밍 디코딩하고 Raid Parser로 즉시 전달합니다.
         </p>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <button className="secondary-button" onClick={() => fileInputRef.current?.click()} disabled={isProcessing}>
             <FileUp size={16} aria-hidden="true" />
             파일 선택
-          </button>
-          <button className="primary-button" onClick={onDemo} disabled={isProcessing}>
-            <Play size={16} aria-hidden="true" />
-            DEMO DATA
           </button>
           {isProcessing && (
             <button className="secondary-button border-abi-amber text-abi-amber" onClick={onCancel}>

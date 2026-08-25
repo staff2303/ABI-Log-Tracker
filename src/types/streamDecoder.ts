@@ -15,6 +15,7 @@ export interface StreamingDecoderStats {
   unknownRecords: number;
   headerRecords: number;
   decodedBytes: number;
+  fileHash: string | null;
 }
 
 export interface StreamingDecoderSnapshot {
