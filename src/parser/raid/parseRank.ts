@@ -1,5 +1,7 @@
 import type { RankDetail } from "../../types/raid";
 
+export const POINTS_PER_RANK_LEVEL = 100;
+
 export interface ParsedRankInfo {
   rank: RankDetail;
   sourceRecordIndex: number;
@@ -32,15 +34,21 @@ export function parseRankLine(line: string, sourceRecordIndex: number): ParsedRa
     return null;
   }
 
+  const previousProgress = previousRankLevel * POINTS_PER_RANK_LEVEL + previousScore;
+  const nextProgress = nextRankLevel * POINTS_PER_RANK_LEVEL + nextScore;
+
   return {
     sourceRecordIndex,
     rank: {
       previousRank: `RankLevel ${previousRankLevel}`,
       nextRank: `RankLevel ${nextRankLevel}`,
+      previousRankLevel,
+      nextRankLevel,
       previousScore,
       nextScore,
-      delta: nextScore - previousScore,
+      rawScoreDelta: nextScore - previousScore,
+      delta: nextProgress - previousProgress,
+      pointsPerRankLevel: POINTS_PER_RANK_LEVEL,
     },
   };
 }
-

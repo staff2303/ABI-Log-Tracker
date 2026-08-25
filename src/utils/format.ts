@@ -50,6 +50,14 @@ export function formatNumber(value: Nullable<number> | undefined): string {
   return new Intl.NumberFormat("ko-KR").format(value);
 }
 
+export function formatId(value: Nullable<number | string> | undefined): string {
+  if (value === null || value === undefined || value === "") {
+    return emptyValue;
+  }
+
+  return String(value);
+}
+
 export function formatBytes(value: Nullable<number> | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return emptyValue;

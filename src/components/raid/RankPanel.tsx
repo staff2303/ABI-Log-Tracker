@@ -1,8 +1,8 @@
 import type { RankDetail } from "../../types/raid";
+import { cn } from "../../utils/classNames";
 import { emptyValue, formatNumber } from "../../utils/format";
 import { StatusBadge } from "../layout/StatusBadge";
 import { SectionPanel } from "../layout/SectionPanel";
-import { InfoGrid } from "./InfoGrid";
 
 interface RankPanelProps {
   rank: RankDetail | null;
@@ -20,22 +20,50 @@ export function RankPanel({ rank }: RankPanelProps) {
     );
   }
 
+  const rankLevelDelta =
+    rank.previousRankLevel === null || rank.nextRankLevel === null ? null : rank.nextRankLevel - rank.previousRankLevel;
+  const rankTone = rankLevelDelta === null || rankLevelDelta === 0 ? "text-abi-text" : rankLevelDelta > 0 ? "text-abi-green" : "text-abi-red";
+  const deltaTone = rank.delta === null || rank.delta === 0 ? "text-abi-text" : rank.delta > 0 ? "text-abi-green" : "text-abi-red";
+
   return (
     <SectionPanel title="랭크" eyebrow="Rank">
-      <InfoGrid
-        columns="two"
-        items={[
-          { label: "이전 랭크", value: rank.previousRank ?? emptyValue },
-          { label: "이후 랭크", value: rank.nextRank ?? emptyValue, tone: "lime" },
-          { label: "이전 점수", value: formatNumber(rank.previousScore) },
-          { label: "이후 점수", value: formatNumber(rank.nextScore), tone: "lime" },
-          {
-            label: "변화량",
-            value: rank.delta === null ? emptyValue : `${rank.delta > 0 ? "+" : ""}${rank.delta}`,
-            tone: (rank.delta ?? 0) >= 0 ? "green" : "red",
-          },
-        ]}
-      />
+      <div className="border border-abi-line bg-abi-black p-3">
+        <p className="text-[11px] uppercase text-abi-muted">Rank</p>
+        <div className={cn("mt-2 flex flex-wrap items-center gap-3 font-mono text-lg font-semibold", rankTone)}>
+          <span>{rank.previousRank ?? emptyValue}</span>
+          <span className="text-abi-muted">→</span>
+          <span>{rank.nextRank ?? emptyValue}</span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-sm text-abi-text">
+          <span>{formatNumber(rank.previousScore)}</span>
+          <span className="text-abi-muted">→</span>
+          <span>{formatNumber(rank.nextScore)}</span>
+        </div>
+
+        <div className="mt-4 border-t border-abi-line pt-3">
+          <p className="text-[11px] uppercase text-abi-muted">이번 레이드</p>
+          <p className={cn("mt-1 font-mono text-2xl font-semibold", deltaTone)}>{formatRankDelta(rank.delta)}</p>
+          {rank.rawScoreDelta !== null && rank.rawScoreDelta !== rank.delta && (
+            <p className="mt-1 font-mono text-[11px] text-abi-muted">
+              raw score {formatSigned(rank.rawScoreDelta)} / level unit {formatNumber(rank.pointsPerRankLevel)}
+            </p>
+          )}
+        </div>
+      </div>
     </SectionPanel>
   );
 }
+
+function formatRankDelta(value: number | null): string {
+  if (value === null) {
+    return emptyValue;
+  }
+
+  return `${formatSigned(value)} RP`;
+}
+
+function formatSigned(value: number): string {
+  return `${value > 0 ? "+" : ""}${formatNumber(value)}`;
+}
+

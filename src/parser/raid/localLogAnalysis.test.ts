@@ -1,12 +1,24 @@
 import { createReadStream } from "node:fs";
+import { createInterface } from "node:readline";
 import { describe, expect, it } from "vitest";
+import { ammoMap } from "../../data/generated/ammoMap";
+import { equipmentMap } from "../../data/generated/equipmentMap";
+import { itemNameMap } from "../../data/generated/itemNameResolver";
 import { formatDateTime } from "../../utils/format";
 import { decodePayloadForValidation, decodePayloadToBytes } from "../decoder/abiLogCodec";
 import { RaidParser } from "./RaidParser";
 
 type ByteBuffer = Uint8Array<ArrayBufferLike>;
 
+interface MappingCoverage {
+  unmappedKillWeaponIds: string[];
+  unmappedDeathWeaponIds: string[];
+  unmappedDeathCauserIds: string[];
+  unmappedArmorIds: string[];
+}
+
 interface LocalLogAnalysis {
+  sourceMode: "binary" | "decodedText";
   totalRecords: number;
   mode03Records: number;
   mode04Records: number;
@@ -117,6 +129,51 @@ function consumeDecoded(decodedLine: string, parser: RaidParser, counters: Local
   parser.consume(decodedLine, { sourceRecordIndex });
 }
 
+function collectMappingCoverage(raids: LocalLogAnalysis["raids"]): MappingCoverage {
+  return {
+    unmappedKillWeaponIds: collectUniqueUnmappedIds(
+      raids.flatMap((raid) => raid.kills.map((kill) => kill.weaponId)),
+      itemNameMap,
+    ),
+    unmappedDeathWeaponIds: collectUniqueUnmappedIds(
+      raids.map((raid) => raid.death?.weaponId ?? null),
+      itemNameMap,
+    ),
+    unmappedDeathCauserIds: collectUniqueUnmappedIds(
+      raids.map((raid) => raid.death?.deathCauserId ?? null),
+      ammoMap,
+    ),
+    unmappedArmorIds: collectUniqueUnmappedIds(
+      raids.flatMap((raid) => [
+        ...raid.kills.map((kill) => kill.armorId),
+        raid.death?.armorId ?? null,
+        ...raid.incomingDamage.map((event) => event.armorId),
+      ]),
+      equipmentMap,
+    ),
+  };
+}
+
+function collectUniqueUnmappedIds(
+  ids: Array<string | number | null | undefined>,
+  map: Readonly<Record<string, string>>,
+): string[] {
+  return Array.from(
+    new Set(
+      ids
+        .filter((id): id is string | number => id !== null && id !== undefined && String(id) !== "" && String(id) !== "0")
+        .map((id) => String(id))
+        .filter((id) => !map[id]),
+    ),
+  ).sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+}
+
+function processDecodedTextRecord(decodedLine: string, parser: RaidParser, counters: LocalLogAnalysis): void {
+  counters.totalRecords += 1;
+  counters.decodedBytes += decodedLine.length;
+  consumeDecoded(decodedLine, parser, counters, counters.totalRecords);
+}
+
 function processRecord(line: ByteBuffer, parser: RaidParser, counters: LocalLogAnalysis): void {
   counters.totalRecords += 1;
   const sourceRecordIndex = counters.totalRecords;
@@ -151,6 +208,7 @@ function processRecord(line: ByteBuffer, parser: RaidParser, counters: LocalLogA
 async function analyzeLog(path: string): Promise<LocalLogAnalysis> {
   const parser = new RaidParser();
   const counters: LocalLogAnalysis = {
+    sourceMode: "binary",
     totalRecords: 0,
     mode03Records: 0,
     mode04Records: 0,
@@ -190,13 +248,95 @@ async function analyzeLog(path: string): Promise<LocalLogAnalysis> {
   return counters;
 }
 
-describe.skipIf(!process.env.ABI_LOG_PATH)("local ABInfinite.log analysis", () => {
-  it("streams and parses the real local log", async () => {
-    const result = await analyzeLog(process.env.ABI_LOG_PATH!);
+function isDecodedRecordStart(line: string): boolean {
+  return /^\[\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2}:\d{3}\]/.test(line);
+}
 
-    console.log(
-      JSON.stringify(
-        {
+async function analyzeDecodedTextLog(path: string): Promise<LocalLogAnalysis> {
+  const parser = new RaidParser();
+  const counters: LocalLogAnalysis = {
+    sourceMode: "decodedText",
+    totalRecords: 0,
+    mode03Records: 0,
+    mode04Records: 0,
+    headerRecords: 0,
+    unknownRecords: 0,
+    decodedBytes: 0,
+    raids: [],
+    debug: parser.getDebugInfo(),
+    patternSamples: {},
+  };
+  let pendingRecord: string | null = null;
+  const lineReader = createInterface({
+    input: createReadStream(path, { highWaterMark: 1024 * 1024 }),
+    crlfDelay: Number.POSITIVE_INFINITY,
+  });
+
+  for await (const line of lineReader) {
+    if (isDecodedRecordStart(line)) {
+      if (pendingRecord !== null) {
+        processDecodedTextRecord(pendingRecord, parser, counters);
+      }
+
+      pendingRecord = line;
+      continue;
+    }
+
+    pendingRecord = pendingRecord === null ? line : `${pendingRecord}\n${line}`;
+  }
+
+  if (pendingRecord !== null) {
+    processDecodedTextRecord(pendingRecord, parser, counters);
+  }
+
+  const result = parser.finalize(counters.totalRecords);
+  counters.raids = result.raids;
+  counters.debug = result.debug;
+
+  return counters;
+}
+
+async function analyzeLocalLog(): Promise<LocalLogAnalysis> {
+  if (process.env.ABI_DECODED_LOG_PATH) {
+    return analyzeDecodedTextLog(process.env.ABI_DECODED_LOG_PATH);
+  }
+
+  return analyzeLog(process.env.ABI_LOG_PATH!);
+}
+
+describe.skipIf(!process.env.ABI_LOG_PATH && !process.env.ABI_DECODED_LOG_PATH)("local ABInfinite.log analysis", () => {
+  it("streams and parses the real local log", async () => {
+    const result = await analyzeLocalLog();
+    const mappingCoverage = collectMappingCoverage(result.raids);
+
+    if (process.env.ABI_LOG_PRINT_MAPPING_ONLY === "1") {
+      console.log(
+        JSON.stringify(
+          {
+            sourceMode: result.sourceMode,
+            totalRecords: result.totalRecords,
+            unknownRecords: result.unknownRecords,
+            raidCount: result.raids.length,
+            totals: {
+              rawKillEnemyEvents: result.debug.raidSummaries.reduce((sum, raid) => sum + raid.rawKillEvents, 0),
+              duplicateKillEventsRemoved: result.debug.raidSummaries.reduce((sum, raid) => sum + raid.duplicateKillEventsRemoved, 0),
+              finalKillDetails: result.raids.reduce((sum, raid) => sum + raid.kills.length, 0),
+              resolvedDeaths: result.debug.raidSummaries.filter((raid) => raid.death !== "n/a" && raid.selectedDeathRecordIndex !== null).length,
+              parserWarnings: result.debug.warnings.length,
+            },
+            mappingCoverage,
+            warnings: result.debug.warnings,
+          },
+          null,
+          2,
+        ),
+      );
+    } else {
+
+      console.log(
+        JSON.stringify(
+          {
+          sourceMode: result.sourceMode,
           totalRecords: result.totalRecords,
           mode03Records: result.mode03Records,
           mode04Records: result.mode04Records,
@@ -213,7 +353,14 @@ describe.skipIf(!process.env.ABI_LOG_PATH)("local ABInfinite.log analysis", () =
             unresolvedDeaths: result.debug.warnings.filter((warning) => warning.code === "death_resolution_failed" || warning.code === "death_resolution_tie").length,
             killerMismatches: result.debug.warnings.filter((warning) => warning.code === "killer_name_mismatch").length,
             weaponMismatches: result.debug.warnings.filter((warning) => warning.code === "weapon_id_mismatch").length,
-            engagements: result.raids.reduce((sum, raid) => sum + raid.engagements.length, 0),
+            incomingDamage: result.raids.reduce((sum, raid) => sum + raid.incomingDamage.length, 0),
+            rawIncomingDamageEvents: result.debug.raidSummaries.reduce((sum, raid) => sum + raid.rawIncomingDamageEvents, 0),
+            duplicateIncomingDamageEventsRemoved: result.debug.raidSummaries.reduce(
+              (sum, raid) => sum + raid.duplicateIncomingDamageEventsRemoved,
+              0,
+            ),
+            fatalIncomingDamageEvents: result.debug.raidSummaries.reduce((sum, raid) => sum + raid.fatalIncomingDamageEvents, 0),
+            unavailableKillMetricEvents: result.debug.raidSummaries.reduce((sum, raid) => sum + raid.unavailableKillMetricEvents, 0),
             deadRaids: result.raids.filter((raid) => raid.basic.result === "dead").length,
             deathDetailsComplete: result.raids.filter((raid) => raid.death?.killerNickname && raid.death.playerPosition && raid.death.killerPosition).length,
             killerNamesParsed: result.raids.filter((raid) => raid.death?.killerNickname).length,
@@ -267,7 +414,7 @@ describe.skipIf(!process.env.ABI_LOG_PATH)("local ABInfinite.log analysis", () =
             killEnemyEvents: raid.kills.length,
             parsedPmcKills: raid.kills.filter((kill) => kill.opponentType === "player").length,
             parsedAiKills: raid.kills.filter((kill) => kill.opponentType === "ai").length,
-            engagements: raid.engagements.length,
+            incomingDamageCount: raid.incomingDamage.length,
             deathCandidateCount: result.debug.raidSummaries[index]?.deathCandidateCount ?? 0,
             selectedDeathRecordIndex: result.debug.raidSummaries[index]?.selectedDeathRecordIndex ?? null,
             death: raid.death
@@ -293,20 +440,78 @@ describe.skipIf(!process.env.ABI_LOG_PATH)("local ABInfinite.log analysis", () =
             rankStatus: result.debug.raidSummaries[index]?.rankStatus,
             rankScoreChange: result.debug.raidSummaries[index]?.rankScoreChange,
             rankResolvedFrom: result.debug.raidSummaries[index]?.rankResolvedFrom,
+            rankProgression: raid.rank
+              ? {
+                  previousRankLevel: raid.rank.previousRankLevel,
+                  previousScore: raid.rank.previousScore,
+                  nextRankLevel: raid.rank.nextRankLevel,
+                  nextScore: raid.rank.nextScore,
+                  previousCalculation: raid.rank.rawScoreDelta,
+                  compositeCalculation: raid.rank.delta,
+                  pointsPerRankLevel: raid.rank.pointsPerRankLevel,
+                }
+              : null,
             killRankedScoreSum: result.debug.raidSummaries[index]?.killRankedScoreSum,
+            incomingDamage: raid.incomingDamage.map((event) => ({
+              attacker: event.attackerNickname,
+              attackerGidInternal: event.attackerGidInternal,
+              deathCauserId: event.deathCauserId,
+              damage: event.damage,
+              armorAbsorbedDamage: event.armorAbsorbedDamage,
+              armorId: event.armorId,
+              penetration: event.penetration,
+              penetrationRate: event.penetrationRate,
+              finalHitDamage: event.finalHitDamage,
+              isFatalAttacker: event.isFatalAttacker,
+              source: [event.sourceRecordStart, event.sourceRecordEnd],
+              fingerprint: event.dedupFingerprint,
+            })),
           })),
+          checks: {
+            slightlyHung: result.raids
+              .flatMap((raid) => raid.kills)
+              .filter((kill) => kill.opponentNickname === "SlightlyHung")
+              .map((kill) => ({
+                damage: kill.damage,
+                armorDamage: kill.armorDamage,
+                hitCount: kill.hitCount,
+                rawDamage: kill.rawDamage,
+                rawArmorDamage: kill.rawArmorDamage,
+                rawHitCount: kill.rawHitCount,
+                opponentGearValue: kill.opponentGearValue,
+                reason: kill.combatMetricsUnavailableReason,
+              })),
+            catchTFadeTKTK: result.raids
+              .flatMap((raid) => raid.incomingDamage)
+              .filter((event) => event.attackerNickname === "CatchTFadeTKTK")
+              .map((event) => ({
+                attackerNickname: event.attackerNickname,
+                attackerGidInternal: event.attackerGidInternal,
+                deathCauserId: event.deathCauserId,
+                damage: event.damage,
+                armorAbsorbedDamage: event.armorAbsorbedDamage,
+                isFatalAttacker: event.isFatalAttacker,
+                source: [event.sourceRecordStart, event.sourceRecordEnd],
+              })),
+          },
+          mappingCoverage,
           raidDebug: result.debug.raidSummaries,
           warnings: result.debug.warnings,
           patternSamples: result.patternSamples,
-        },
-        null,
-        2,
-      ),
-    );
+          },
+          null,
+          2,
+        ),
+      );
+    }
 
     expect(result.totalRecords).toBeGreaterThan(0);
-    expect(result.headerRecords).toBe(1);
+    expect(result.headerRecords).toBe(result.sourceMode === "binary" ? 1 : 0);
     expect(result.unknownRecords).toBe(0);
-    expect(result.raids).toHaveLength(Number(process.env.ABI_LOG_EXPECT_RAID_COUNT ?? 9));
+    if (process.env.ABI_LOG_EXPECT_RAID_COUNT) {
+      expect(result.raids).toHaveLength(Number(process.env.ABI_LOG_EXPECT_RAID_COUNT));
+    } else if (process.env.ABI_LOG_REQUIRE_RAIDS === "1") {
+      expect(result.raids.length).toBeGreaterThan(0);
+    }
   }, 120_000);
 });

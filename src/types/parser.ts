@@ -46,7 +46,11 @@ export interface RaidDebugSummary {
   rawKillEvents: number;
   duplicateKillEventsRemoved: number;
   kills: number;
-  engagements: number;
+  incomingDamage: number;
+  rawIncomingDamageEvents: number;
+  duplicateIncomingDamageEventsRemoved: number;
+  fatalIncomingDamageEvents: number;
+  unavailableKillMetricEvents: number;
   deathCandidateCount: number;
   selectedDeathRecordIndex: number | null;
   deathResolutionMatchedBy: string[];
@@ -73,6 +77,10 @@ export interface RaidDebugSummary {
 export interface RaidDebugMetrics {
   rawKillEvents: number;
   duplicateKillEventsRemoved: number;
+  rawIncomingDamageEvents: number;
+  duplicateIncomingDamageEventsRemoved: number;
+  fatalIncomingDamageEvents: number;
+  unavailableKillMetricEvents: number;
   deathCandidateCount: number;
   selectedDeathRecordIndex: number | null;
   deathResolutionMatchedBy: string[];

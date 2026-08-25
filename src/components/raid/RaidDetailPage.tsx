@@ -1,4 +1,5 @@
 import { ArrowLeft, Clock, Crosshair, Map, Target } from "lucide-react";
+import { formatMapDisplayName } from "../../data/displayNameResolver";
 import type { Raid } from "../../types/raid";
 import {
   displayValue,
@@ -10,7 +11,7 @@ import {
 import { ResultBadge, SquadBadge } from "../layout/StatusBadge";
 import { SectionPanel } from "../layout/SectionPanel";
 import { DeathDetailPanel } from "./DeathDetailPanel";
-import { EngagementList } from "./EngagementList";
+import { IncomingDamageList } from "./IncomingDamageList";
 import { InfoGrid } from "./InfoGrid";
 import { KillDetailsTable } from "./KillDetailsTable";
 import { LootPanel } from "./LootPanel";
@@ -38,6 +39,8 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
     );
   }
 
+  const mapName = formatMapDisplayName(raid.basic.mapId, raid.basic.map);
+
   return (
     <div className="space-y-4">
       <section className="panel p-3">
@@ -49,7 +52,7 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
             <div className="min-w-0">
               <p className="text-[11px] uppercase text-abi-muted">{raid.id}</p>
               <h1 className="mt-1 truncate text-xl font-semibold text-abi-text">
-                {displayValue(raid.basic.map)} / {displayValue(raid.basic.zone)}
+                {displayValue(mapName)} / {displayValue(raid.basic.zone)}
               </h1>
               <div className="mt-2 flex flex-wrap gap-2">
                 <ResultBadge result={raid.basic.result} />
@@ -91,7 +94,7 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
               columns="four"
               items={[
                 { label: "날짜/시간", value: formatLongDateTime(raid.basic.dateTime) },
-                { label: "맵", value: displayValue(raid.basic.map) },
+                { label: "맵", value: displayValue(mapName) },
                 { label: "모드", value: displayValue(raid.basic.mode) },
                 { label: "구역", value: displayValue(raid.basic.zone) },
                 { label: "솔로/팀", value: raid.basic.squad === "solo" ? "Solo" : "Team" },
@@ -125,8 +128,8 @@ export function RaidDetailPage({ raid, onBack }: RaidDetailPageProps) {
             <KillDetailsTable kills={raid.kills} />
           </SectionPanel>
 
-          <SectionPanel title="교전 상세" eyebrow="Engagements">
-            <EngagementList engagements={raid.engagements} />
+          <SectionPanel title="받은 피해 상세" eyebrow="Incoming Damage">
+            <IncomingDamageList incomingDamage={raid.incomingDamage} />
           </SectionPanel>
         </div>
 

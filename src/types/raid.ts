@@ -5,6 +5,7 @@ export type SquadType = "solo" | "team";
 export type RaidTeamType = "solo" | "team" | "unknown";
 export type OpponentType = "player" | "ai" | "unknown";
 export type TeamMemberStatus = "alive" | "dead" | "extracted" | "unknown";
+export type KillMetricUnavailableReason = "unreliable-zero-kill-metrics";
 
 export interface Vector3 {
   x: Nullable<number>;
@@ -64,6 +65,10 @@ export interface KillDetail {
   damage: Nullable<number>;
   armorDamage: Nullable<number>;
   hitCount: Nullable<number>;
+  rawDamage: Nullable<number>;
+  rawArmorDamage: Nullable<number>;
+  rawHitCount: Nullable<number>;
+  combatMetricsUnavailableReason: Nullable<KillMetricUnavailableReason>;
   armorId: Nullable<number>;
   armorName: Nullable<string>;
   opponentArmor: Nullable<string>;
@@ -73,22 +78,28 @@ export interface KillDetail {
   deathType: Nullable<number>;
 }
 
-export interface EngagementDetail {
-  opponentGid: Nullable<string>;
-  opponentNickname: string;
-  opponentType: OpponentType;
+export interface IncomingDamageDetail {
+  sourceRecordStart: Nullable<number>;
+  sourceRecordEnd: Nullable<number>;
+  attackerNickname: Nullable<string>;
+  attackerGidInternal: Nullable<string>;
+  attackerType: OpponentType;
+  deathCauserId: Nullable<string>;
+  penetration: Nullable<boolean>;
+  armorId: Nullable<string>;
+  armorDurability: Nullable<number>;
+  armorMaxDurability: Nullable<number>;
   damage: Nullable<number>;
-  armorDamage: Nullable<number>;
-  hitCount: Nullable<number>;
-  penetrationCount: Nullable<number>;
-  weaponId: Nullable<number>;
-  weaponName: Nullable<string>;
-  weaponIds: number[];
-  ammoId: Nullable<number>;
-  ammoName: Nullable<string>;
-  ammoIds: number[];
-  weaponsAmmo: string[];
-  killed: boolean;
+  armorAbsorbedDamage: Nullable<number>;
+  penetrationRate: Nullable<number>;
+  targetStateRaw: Nullable<number>;
+  bodyPenetrated: Nullable<boolean>;
+  finalHitDamage: Nullable<number>;
+  consumedArmorDurability: Nullable<number>;
+  lastHitReducedDamage: Nullable<number>;
+  armReducedDamage: Nullable<number>;
+  isFatalAttacker: boolean;
+  dedupFingerprint: string;
 }
 
 export interface ArmorDurability {
@@ -174,9 +185,13 @@ export interface TeamDetail {
 export interface RankDetail {
   previousRank: Nullable<string>;
   nextRank: Nullable<string>;
+  previousRankLevel: Nullable<number>;
+  nextRankLevel: Nullable<number>;
   previousScore: Nullable<number>;
   nextScore: Nullable<number>;
+  rawScoreDelta: Nullable<number>;
   delta: Nullable<number>;
+  pointsPerRankLevel: Nullable<number>;
 }
 
 export interface Raid {
@@ -184,7 +199,7 @@ export interface Raid {
   basic: RaidBasic;
   combat: RaidCombat;
   kills: KillDetail[];
-  engagements: EngagementDetail[];
+  incomingDamage: IncomingDamageDetail[];
   death: Nullable<DeathDetail>;
   loot: LootDetail;
   survival: SurvivalDetail;

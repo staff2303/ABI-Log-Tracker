@@ -1,0 +1,2230 @@
+{
+  "generatedFrom": [
+    "2026.08.19-18.10.09.log.txt",
+    "2026.08.20-23.18.35.txt",
+    "2026.08.22-17.55.40.txt",
+    "2026.08.23-19.17.48.txt",
+    "2026.08.24-17.02.48.txt",
+    "2026.08.24-17.07.49.txt",
+    "2026.08.24-18.08.48.txt"
+  ],
+  "mappingCount": 113,
+  "mappings": {
+    "101010002": {
+      "id": "101010002",
+      "displayName": "M4A1 Assault Rifle",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "M4A1 Assault Rifle",
+          "occurrences": 8,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:194521: [2026.08.23-17.01.04:409][735]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 M4A1 Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\BattleResultModule\\Data\\ResultCommonShow.lua:510]"
+        }
+      ]
+    },
+    "101010003": {
+      "id": "101010003",
+      "displayName": "FAL Assault Rifle",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "FAL Assault Rifle",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:714485: [2026.08.22-17.09.49:743][687]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 FAL Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        }
+      ]
+    },
+    "101010004": {
+      "id": "101010004",
+      "displayName": "H416 Assault Rifle",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "H416 Assault Rifle",
+          "occurrences": 11,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.20-23.18.35.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:545464: [2026.08.19-16.24.09:860][133]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 H416 Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        }
+      ]
+    },
+    "101010010": {
+      "id": "101010010",
+      "displayName": "AUG Assault Rifle",
+      "aliases": [
+        "AUG"
+      ],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "AUG Assault Rifle",
+          "occurrences": 20,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:681853: [2026.08.20-22.46.13:799][523]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 AUG Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\BattleResultModule\\Data\\ResultCommonShow.lua:510]"
+        },
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AUG",
+          "occurrences": 3,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:687716: [2026.08.20-22.46.38:104][962]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  25 equipItem 101010010 [ AUG ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "101010014": {
+      "id": "101010014",
+      "displayName": "AEK Assault Rifle",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "AEK Assault Rifle",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:125336: [2026.08.23-16.52.43:926][352]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 AEK Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        }
+      ]
+    },
+    "101010017": {
+      "id": "101010017",
+      "displayName": "FAMAS Assault Rifle",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "FAMAS Assault Rifle",
+          "occurrences": 3,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:636403: [2026.08.23-18.01.27:250][778]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 FAMAS Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        }
+      ]
+    },
+    "101010018": {
+      "id": "101010018",
+      "displayName": "SCAR-L Assault Rifle",
+      "aliases": [
+        "SCAR-L"
+      ],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "SCAR-L Assault Rifle",
+          "occurrences": 5,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:568948: [2026.08.19-16.27.03:269][697]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 SCAR-L Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\BattleResultModule\\Data\\ResultCommonShow.lua:510]"
+        },
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:90935: [2026.08.24-16.56.17:388][971]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  101010018 [ SCAR-L ] 9244541831888970 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "101010023": {
+      "id": "101010023",
+      "displayName": "AK12",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AK12",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:90938: [2026.08.24-16.56.17:388][971]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  101010023 [ AK12 ] 10697635568596443 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "101010024": {
+      "id": "101010024",
+      "displayName": "MCX Assault Rifle",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "MCX Assault Rifle",
+          "occurrences": 11,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:515486: [2026.08.22-16.44.09:916][957]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 MCX Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\BattleResultModule\\Data\\ResultCommonShow.lua:510]"
+        }
+      ]
+    },
+    "101010027": {
+      "id": "101010027",
+      "displayName": "T191 Assault Rifle",
+      "aliases": [
+        "T191"
+      ],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "T191 Assault Rifle",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:568941: [2026.08.19-16.27.03:253][696]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 T191 Assault Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\BattleResultModule\\Data\\ResultCommonShow.lua:510]"
+        },
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T191",
+          "occurrences": 12,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18087: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 101010027 [ T191 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "101020001": {
+      "id": "101020001",
+      "displayName": "MP5 Micro SMG",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "MP5 Micro SMG",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:545573: [2026.08.19-16.24.10:749][188]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 MP5 Micro SMG [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        }
+      ]
+    },
+    "101020003": {
+      "id": "101020003",
+      "displayName": "P90 Micro SMG",
+      "aliases": [
+        "P90"
+      ],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "P90 Micro SMG",
+          "occurrences": 2,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:472567: [2026.08.23-17.40.38:991][936]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 P90 Micro SMG [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        },
+        {
+          "method": "direct_id_bracket_name",
+          "name": "P90",
+          "occurrences": 12,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:704302: [2026.08.23-18.18.41:925][187]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  101020003 [ P90 ] 6562260667363340 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "101020014": {
+      "id": "101020014",
+      "displayName": "Vector 9 Micro SMG",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "Vector 9 Micro SMG",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:623690: [2026.08.20-22.24.46:743][869]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 Vector 9 Micro SMG [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        }
+      ]
+    },
+    "101030006": {
+      "id": "101030006",
+      "displayName": "T88",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T88",
+          "occurrences": 6,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:704305: [2026.08.23-18.18.41:925][187]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  101030006 [ T88 ] 7674333463864174 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "101030007": {
+      "id": "101030007",
+      "displayName": "U191 Marksman Rifle",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "U191 Marksman Rifle",
+          "occurrences": 5,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.20-23.18.35.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:545681: [2026.08.19-16.24.11:698][247]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 U191 Marksman Rifle [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\PersonalInfoModule\\Panel\\PersonalHistoryDetailInfoPanel\\PersonalHistoryDetailInfoPanelPanel.lua:574]"
+        }
+      ]
+    },
+    "102010002": {
+      "id": "102010002",
+      "displayName": "M9A3 Pistol",
+      "aliases": [],
+      "category": "weapon",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "battle_result_weapon_name",
+          "name": "M9A3 Pistol",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:515507: [2026.08.22-16.44.09:918][957]LogUnLua: Display: |LuaCore.cpp:2779|[BattleResultModule]武器名称 M9A3 Pistol [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\BattleResultModule\\Data\\ResultCommonShow.lua:510]"
+        }
+      ]
+    },
+    "104010001": {
+      "id": "104010001",
+      "displayName": "M67",
+      "aliases": [],
+      "category": "throwable",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "M67",
+          "occurrences": 39,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:534563: [2026.08.20-22.16.21:132][814]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  23 equipItem 104010001 [ M67 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "104030001": {
+      "id": "104030001",
+      "displayName": "Stun Gren.",
+      "aliases": [],
+      "category": "throwable",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Stun Gren.",
+          "occurrences": 26,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:534551: [2026.08.20-22.16.21:132][814]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  23 equipItem 104030001 [ Stun Gren. ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "104050001": {
+      "id": "104050001",
+      "displayName": "Molotov",
+      "aliases": [],
+      "category": "throwable",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Molotov",
+          "occurrences": 91,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18062: [2026.08.19-15.13.18:935][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 104050001 [ Molotov ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "201010008": {
+      "id": "201010008",
+      "displayName": "Vertical FG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Vertical FG",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57328: [2026.08.24-16.50.36:562][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201010008 [ Vertical FG ] 11139875466126940 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201010010": {
+      "id": "201010010",
+      "displayName": "RK-0 FG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "RK-0 FG",
+          "occurrences": 19,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:28009: [2026.08.20-20.30.50:279][117]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201010010 [ RK-0 FG ] 10572068441574930 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201010011": {
+      "id": "201010011",
+      "displayName": "Compact FG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Compact FG",
+          "occurrences": 3,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:397456: [2026.08.20-21.43.45:318][668]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201010011 [ Compact FG ] 5892385355724423 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201020033": {
+      "id": "201020033",
+      "displayName": "SCAR-L Grip",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L Grip",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57323: [2026.08.24-16.50.36:561][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201020033 [ SCAR-L Grip ] 10612410532521484 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201020040": {
+      "id": "201020040",
+      "displayName": "AK-12 Std. RG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AK-12 Std. RG",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:75124: [2026.08.24-16.53.20:289][573]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201020040 [ AK-12 Std. RG ] 4223245100292037 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201020044": {
+      "id": "201020044",
+      "displayName": "T19X Std. RG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T19X Std. RG",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:292579: [2026.08.19-15.53.11:134][795]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201020044 [ T19X Std. RG ] 4901579350159902 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030103": {
+      "id": "201030103",
+      "displayName": "SRDS",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SRDS",
+          "occurrences": 40,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.20-23.18.35.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:291809: [2026.08.19-15.53.09:060][679]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]1 201030103 [ SRDS ] 5586936408317605 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:2425]"
+        }
+      ]
+    },
+    "201030104": {
+      "id": "201030104",
+      "displayName": "PK Reflex",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "PK Reflex",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:630599: [2026.08.20-22.38.05:492][840]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]1 201030104 [ PK Reflex ] 6184590771315109 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:2425]"
+        }
+      ]
+    },
+    "201030108": {
+      "id": "201030108",
+      "displayName": "553",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "553",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57326: [2026.08.24-16.50.36:561][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030108 [ 553 ] 9667620806657639 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030119": {
+      "id": "201030119",
+      "displayName": "M1 Red Dot",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "M1 Red Dot",
+          "occurrences": 6,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:28568: [2026.08.20-20.31.05:827][ 69]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030119 [ M1 Red Dot ] 9000568899073610 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030203": {
+      "id": "201030203",
+      "displayName": "Mosin3.5",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Mosin3.5",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:705662: [2026.08.23-18.19.10:064][895]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030203 [ Mosin3.5 ] 4180300796016509 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030602": {
+      "id": "201030602",
+      "displayName": "Mosin Std. RS",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Mosin Std. RS",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:705658: [2026.08.23-18.19.10:064][895]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030602 [ Mosin Std. RS ] 11091273079329306 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030615": {
+      "id": "201030615",
+      "displayName": "Mosin",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Mosin",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:705659: [2026.08.23-18.19.10:064][895]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030615 [ Mosin ] 5892384818800243 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030660": {
+      "id": "201030660",
+      "displayName": "SCAR-L Front Sight",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L Front Sight",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57331: [2026.08.24-16.50.36:562][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030660 [ SCAR-L Front Sight ] 11344427578557856 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030666": {
+      "id": "201030666",
+      "displayName": "AK-12 RS",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AK-12 RS",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:75127: [2026.08.24-16.53.20:289][573]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030666 [ AK-12 RS ] 6078761703357062 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030673": {
+      "id": "201030673",
+      "displayName": "T88 Front Sight",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T88 Front Sight",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:229027: [2026.08.22-15.36.42:340][133]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030673 [ T88 Front Sight ] 4578071139116462 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030674": {
+      "id": "201030674",
+      "displayName": "T88 Fold RS",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T88 Fold RS",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:229026: [2026.08.22-15.36.42:340][133]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030674 [ T88 Fold RS ] 11147687474761233 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201030677": {
+      "id": "201030677",
+      "displayName": "T19X Sight",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T19X Sight",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:292576: [2026.08.19-15.53.11:134][795]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201030677 [ T19X Sight ] 5892384818799768 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201040156": {
+      "id": "201040156",
+      "displayName": "Mosin Std.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Mosin Std.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:705663: [2026.08.23-18.19.10:064][895]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201040156 [ Mosin Std. ] 9251408410939586 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201040198": {
+      "id": "201040198",
+      "displayName": "SCAR-L Std.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L Std.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57325: [2026.08.24-16.50.36:561][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201040198 [ SCAR-L Std. ] 11371350044182396 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201040421": {
+      "id": "201040421",
+      "displayName": "T19X Cheek Rest",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T19X Cheek Rest",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:292581: [2026.08.19-15.53.11:134][795]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201040421 [ T19X Cheek Rest ] 4113862483784909 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201040523": {
+      "id": "201040523",
+      "displayName": "AK-12 Tac.Stock",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AK-12 Tac.Stock",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:75129: [2026.08.24-16.53.20:289][573]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201040523 [ AK-12 Tac.Stock ] 3357632022764579 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201040540": {
+      "id": "201040540",
+      "displayName": "T88 Std. Stock",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T88 Std. Stock",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:229024: [2026.08.22-15.36.42:340][133]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201040540 [ T88 Std. Stock ] 3449467550342824 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201040547": {
+      "id": "201040547",
+      "displayName": "T19X Std. Stk.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T19X Std. Stk.",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:292580: [2026.08.19-15.53.11:134][795]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201040547 [ T19X Std. Stk. ] 11354516456736704 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201060101": {
+      "id": "201060101",
+      "displayName": "Mosin",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Mosin",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:705660: [2026.08.23-18.19.10:064][895]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201060101 [ Mosin ] 5892384818800242 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201060102": {
+      "id": "201060102",
+      "displayName": "3.5x",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "3.5x",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:705661: [2026.08.23-18.19.10:064][895]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201060102 [ 3.5x ] 8051015517518773 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201060106": {
+      "id": "201060106",
+      "displayName": "30mm",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "30mm",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:75126: [2026.08.24-16.53.20:289][573]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201060106 [ 30mm ] 10479390563521783 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201060327": {
+      "id": "201060327",
+      "displayName": "AUG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AUG",
+          "occurrences": 7,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:638730: [2026.08.20-22.40.57:703][425]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201060327 [ AUG ] 5892384818799904 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201060345": {
+      "id": "201060345",
+      "displayName": "SCAR-L Bottom Rail",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L Bottom Rail",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57327: [2026.08.24-16.50.36:561][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201060345 [ SCAR-L Bottom Rail ] 11134350527562848 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201070141": {
+      "id": "201070141",
+      "displayName": "AK-12 Sup.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AK-12 Sup.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:75128: [2026.08.24-16.53.20:289][573]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201070141 [ AK-12 Sup. ] 5892384818800370 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201070145": {
+      "id": "201070145",
+      "displayName": "T88 Sup.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T88 Sup.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:229029: [2026.08.22-15.36.42:340][133]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201070145 [ T88 Sup. ] 7673992550879099 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201070202": {
+      "id": "201070202",
+      "displayName": "AR-15 F.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AR-15 F.",
+          "occurrences": 8,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:638729: [2026.08.20-22.40.57:703][425]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201070202 [ AR-15 F. ] 5892384818799905 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201080101": {
+      "id": "201080101",
+      "displayName": "AK-12 Std. HG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AK-12 Std. HG",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:75122: [2026.08.24-16.53.20:289][573]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201080101 [ AK-12 Std. HG ] 10791905805777936 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201080126": {
+      "id": "201080126",
+      "displayName": "T191 Std. HG",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T191 Std. HG",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:292575: [2026.08.19-15.53.11:134][795]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201080126 [ T191 Std. HG ] 6382730497539065 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201100046": {
+      "id": "201100046",
+      "displayName": "SCAR-L UR",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L UR",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57324: [2026.08.24-16.50.36:561][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201100046 [ SCAR-L UR ] 11443327253611596 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201100052": {
+      "id": "201100052",
+      "displayName": "AK-12 Cover",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AK-12 Cover",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:75125: [2026.08.24-16.53.20:289][573]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201100052 [ AK-12 Cover ] 11322758394808678 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201100058": {
+      "id": "201100058",
+      "displayName": "T88 Std.Up.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T88 Std.Up.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:229025: [2026.08.22-15.36.42:340][133]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201100058 [ T88 Std.Up. ] 9935702464670025 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201100062": {
+      "id": "201100062",
+      "displayName": "T191 Std.Up.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T191 Std.Up.",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:292574: [2026.08.19-15.53.11:134][795]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201100062 [ T191 Std.Up. ] 8240828912769334 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201110008": {
+      "id": "201110008",
+      "displayName": "Mosin L.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Mosin L.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:705657: [2026.08.23-18.19.10:064][895]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201110008 [ Mosin L. ] 11423388404810436 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201110071": {
+      "id": "201110071",
+      "displayName": "SCAR-L M.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L M.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57329: [2026.08.24-16.50.36:562][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201110071 [ SCAR-L M. ] 11371350044182403 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201110094": {
+      "id": "201110094",
+      "displayName": "T191 Barrel",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "T191 Barrel",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:292578: [2026.08.19-15.53.11:134][795]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201110094 [ T191 Barrel ] 2997428148092449 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201120002": {
+      "id": "201120002",
+      "displayName": "X300U-A",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "X300U-A",
+          "occurrences": 11,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:63275: [2026.08.20-20.55.52:219][733]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201120002 [ X300U-A ] 11345229663702884 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "201150012": {
+      "id": "201150012",
+      "displayName": "SCAR-L Std.Hdl.",
+      "aliases": [],
+      "category": "attachment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SCAR-L Std.Hdl.",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:57322: [2026.08.24-16.50.36:561][946]LogUnLua: Display: |LuaCore.cpp:2779|[WeaponBuild]AddAccItemToGunList 201150012 [ SCAR-L Std.Hdl. ] 11451507018826839 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAlgorithm.lua:686]"
+        }
+      ]
+    },
+    "202030004": {
+      "id": "202030004",
+      "displayName": "5.56x45 M995",
+      "aliases": [],
+      "category": "ammo",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "5.56x45 M995",
+          "occurrences": 14,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:687691: [2026.08.20-22.46.38:103][962]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  25 equipItem 202030004 [ 5.56x45 M995 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "202080006": {
+      "id": "202080006",
+      "displayName": "5.7×28 SS198",
+      "aliases": [],
+      "category": "ammo",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "5.7×28 SS198",
+          "occurrences": 11,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:534569: [2026.08.20-22.16.21:132][814]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  23 equipItem 202080006 [ 5.7×28 SS198 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "202170001": {
+      "id": "202170001",
+      "displayName": "5.8×42 DVC12",
+      "aliases": [],
+      "category": "ammo",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "5.8×42 DVC12",
+          "occurrences": 49,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18079: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 202170001 [ 5.8×42 DVC12 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "301010107": {
+      "id": "301010107",
+      "displayName": "926 Hunter Vest",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "926 Hunter Vest",
+          "occurrences": 37,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:52639: [2026.08.20-20.54.26:221][580]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301010107 [ 926 Hunter Vest ] 10534011273281634 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301010108": {
+      "id": "301010108",
+      "displayName": "B4 Tactical Chest Rig",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "B4 Tactical Chest Rig",
+          "occurrences": 15,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:37509: [2026.08.22-15.08.56:482][978]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301010108 [ B4 Tactical Chest Rig ] 5892384818799938 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301010109": {
+      "id": "301010109",
+      "displayName": "926",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "926",
+          "occurrences": 18,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:402782: [2026.08.20-21.44.13:382][326]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301010109 [ 926 ] 4497603316159418 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301010112": {
+      "id": "301010112",
+      "displayName": "FA Multi.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "FA Multi.",
+          "occurrences": 18,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:52638: [2026.08.20-20.54.26:221][580]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301010112 [ FA Multi. ] 10904397978544213 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301010119": {
+      "id": "301010119",
+      "displayName": "L.Vest",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "L.Vest",
+          "occurrences": 14,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18081: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 301010119 [ L.Vest ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "301010203": {
+      "id": "301010203",
+      "displayName": "Warrior",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Warrior",
+          "occurrences": 60,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:402902: [2026.08.20-21.44.17:829][600]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel nil table: 000000110296EC20 301010203 [ Warrior ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301010207": {
+      "id": "301010207",
+      "displayName": "TM2",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "TM2",
+          "occurrences": 25,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:634641: [2026.08.20-22.38.21:680][793]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel SHOW_QUICK_PAINT_POP_PANEL table: 00000011C3CF4D30 301010207 [ TM2 ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301010213": {
+      "id": "301010213",
+      "displayName": "M4",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "M4",
+          "occurrences": 36,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:52640: [2026.08.20-20.54.26:221][580]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301010213 [ M4 ] 9622704575526276 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301010222": {
+      "id": "301010222",
+      "displayName": "AL Assault Armored Rig",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AL Assault Armored Rig",
+          "occurrences": 7,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:52788: [2026.08.20-20.54.31:205][888]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel nil table: 000000117EFA78B0 301010222 [ AL Assault Armored Rig ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301020004": {
+      "id": "301020004",
+      "displayName": "M.Camp",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "M.Camp",
+          "occurrences": 2,
+          "sourceFiles": [
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.24-18.08.48.txt:131741: [2026.08.24-17.25.41:231][138]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020004 [ M.Camp ] 2980562348281435 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020005": {
+      "id": "301020005",
+      "displayName": "Travel",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Travel",
+          "occurrences": 14,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:53931: [2026.08.20-20.54.36:421][201]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020005 [ Travel ] 2883840758558519 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020006": {
+      "id": "301020006",
+      "displayName": "XA4 Tac.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "XA4 Tac.",
+          "occurrences": 15,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:233382: [2026.08.22-15.37.13:830][963]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020006 [ XA4 Tac. ] 5892384818799935 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020007": {
+      "id": "301020007",
+      "displayName": "926",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "926",
+          "occurrences": 75,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:53923: [2026.08.20-20.54.36:421][201]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020007 [ 926 ] 3261724866223147 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020008": {
+      "id": "301020008",
+      "displayName": "Field",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Field",
+          "occurrences": 36,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:53929: [2026.08.20-20.54.36:421][201]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020008 [ Field ] 5698967409107026 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020011": {
+      "id": "301020011",
+      "displayName": "Sports Backpack",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Sports Backpack",
+          "occurrences": 66,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18084: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 301020011 [ Sports Backpack ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "301020013": {
+      "id": "301020013",
+      "displayName": "Chapman Mil.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Chapman Mil.",
+          "occurrences": 6,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:53939: [2026.08.20-20.54.36:421][201]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020013 [ Chapman Mil. ] 6100391695575397 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020014": {
+      "id": "301020014",
+      "displayName": "Med Field",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Med Field",
+          "occurrences": 47,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:53937: [2026.08.20-20.54.36:421][201]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020014 [ Med Field ] 11096043177382400 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020015": {
+      "id": "301020015",
+      "displayName": "AMP Assault",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "AMP Assault",
+          "occurrences": 12,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:841467: [2026.08.22-17.42.34:193][  0]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020015 [ AMP Assault ] 3917561540386187 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020016": {
+      "id": "301020016",
+      "displayName": "RUSH Tac.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "RUSH Tac.",
+          "occurrences": 200,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:53924: [2026.08.20-20.54.36:421][201]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020016 [ RUSH Tac. ] 8785716381239398 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020019": {
+      "id": "301020019",
+      "displayName": "L.Camping",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "L.Camping",
+          "occurrences": 5,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:987734: [2026.08.23-18.50.57:257][ 40]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020019 [ L.Camping ] 8357409894497735 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301020020": {
+      "id": "301020020",
+      "displayName": "R.Marching",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "R.Marching",
+          "occurrences": 55,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt",
+            "2026.08.24-18.08.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:53938: [2026.08.20-20.54.36:421][201]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301020020 [ R.Marching ] 10534010736395696 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301030005": {
+      "id": "301030005",
+      "displayName": "Z038",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Z038",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:402653: [2026.08.20-21.44.11:995][242]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301030005 [ Z038 ] 10971662535143814 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301030006": {
+      "id": "301030006",
+      "displayName": "GS2",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "GS2",
+          "occurrences": 60,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18066: [2026.08.19-15.13.18:935][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 301030006 [ GS2 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "301030007": {
+      "id": "301030007",
+      "displayName": "Commander",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Commander",
+          "occurrences": 11,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:233111: [2026.08.22-15.37.03:253][311]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301030007 [ Commander ] 7218021642804464 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040005": {
+      "id": "301040005",
+      "displayName": "6BNT",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "6BNT",
+          "occurrences": 10,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51482: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040005 [ 6BNT ] 8661261113929697 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040010": {
+      "id": "301040010",
+      "displayName": "FA Assault",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "FA Assault",
+          "occurrences": 4,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51484: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040010 [ FA Assault ] 5892384818798981 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040012": {
+      "id": "301040012",
+      "displayName": "IND Tac.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "IND Tac.",
+          "occurrences": 3,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:51301: [2026.08.24-16.49.20:305][318]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel SHOW_QUICK_PAINT_POP_PANEL table: 00000011D4F4C5F0 301040012 [ IND Tac. ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301040018": {
+      "id": "301040018",
+      "displayName": "KSS Tac.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "KSS Tac.",
+          "occurrences": 13,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51473: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040018 [ KSS Tac. ] 4745712839508598 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040024": {
+      "id": "301040024",
+      "displayName": "KSS2 Tac.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "KSS2 Tac.",
+          "occurrences": 32,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51475: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040024 [ KSS2 Tac. ] 5892385355723572 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040026": {
+      "id": "301040026",
+      "displayName": "03 H.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "03 H.",
+          "occurrences": 44,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51474: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040026 [ 03 H. ] 10796059039147152 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040028": {
+      "id": "301040028",
+      "displayName": "SH50",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SH50",
+          "occurrences": 6,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51477: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040028 [ SH50 ] 5892384818798982 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040029": {
+      "id": "301040029",
+      "displayName": "SH M2",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SH M2",
+          "occurrences": 5,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51485: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040029 [ SH M2 ] 5892384818798983 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040032": {
+      "id": "301040032",
+      "displayName": "SH65",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SH65",
+          "occurrences": 77,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51491: [2026.08.20-20.54.16:090][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040032 [ SH65 ] 9592920051114384 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040034": {
+      "id": "301040034",
+      "displayName": "RST Sp.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "RST Sp.",
+          "occurrences": 5,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51497: [2026.08.20-20.54.16:091][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040034 [ RST Sp. ] 7277640620751666 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301040035": {
+      "id": "301040035",
+      "displayName": "IND70 Tac.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "IND70 Tac.",
+          "occurrences": 15,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51496: [2026.08.20-20.54.16:091][997]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301040035 [ IND70 Tac. ] 6116974027349038 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301050001": {
+      "id": "301050001",
+      "displayName": "DK6",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "DK6",
+          "occurrences": 1,
+          "sourceFiles": [
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.24-17.02.48.txt:51929: [2026.08.24-16.49.22:632][460]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel nil table: 00000011D54C8A10 301050001 [ DK6 ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301050006": {
+      "id": "301050006",
+      "displayName": "6BNT",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "6BNT",
+          "occurrences": 2,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:37331: [2026.08.22-15.08.54:268][843]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]-  301050006 [ 6BNT ] 10047830102127354 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\WarehouseModule\\ItemSearch\\ItemSearchAPI.lua:368]"
+        }
+      ]
+    },
+    "301050010": {
+      "id": "301050010",
+      "displayName": "SH Univ.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SH Univ.",
+          "occurrences": 6,
+          "sourceFiles": [
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.23-19.17.48.txt:695737: [2026.08.23-18.17.21:480][540]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel nil table: 00000012935A85B0 301050010 [ SH Univ. ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301050011": {
+      "id": "301050011",
+      "displayName": "SH65B",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SH65B",
+          "occurrences": 8,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:51850: [2026.08.20-20.54.23:131][400]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]UnTopologicalItems 5892384818793583 301050011 [ SH65B ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\RapidServiceModel.lua:5719]"
+        }
+      ]
+    },
+    "301050014": {
+      "id": "301050014",
+      "displayName": "DK8 Mil.",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "DK8 Mil.",
+          "occurrences": 49,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt",
+            "2026.08.22-17.55.40.txt",
+            "2026.08.23-19.17.48.txt",
+            "2026.08.24-17.02.48.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:403711: [2026.08.20-21.44.22:048][850]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel SHOW_QUICK_PAINT_POP_PANEL table: 00000012EE7CD7F0 301050014 [ DK8 Mil. ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301060013": {
+      "id": "301060013",
+      "displayName": "6B23",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "6B23",
+          "occurrences": 9,
+          "sourceFiles": [
+            "2026.08.22-17.55.40.txt"
+          ],
+          "sample": "2026.08.22-17.55.40.txt:539909: [2026.08.22-16.46.17:446][401]LogUnLua: Display: |LuaCore.cpp:2779|[RapidPrepareService]OnShowQuickPaintPopPanel SHOW_QUICK_PAINT_POP_PANEL table: 0000000283354EF0 301060013 [ 6B23 ] 0 [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\RapidServiceModule\\Panel\\RapidEquip\\RapidEquipSubPanelControl.lua:409]"
+        }
+      ]
+    },
+    "301150203": {
+      "id": "301150203",
+      "displayName": "SH3",
+      "aliases": [],
+      "category": "equipment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "SH3",
+          "occurrences": 10,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18076: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 301150203 [ SH3 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "401010007": {
+      "id": "401010007",
+      "displayName": "LP",
+      "aliases": [],
+      "category": "medical",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "LP",
+          "occurrences": 117,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18069: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 401010007 [ LP ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "401030202": {
+      "id": "401030202",
+      "displayName": "Std.Kit",
+      "aliases": [],
+      "category": "medical",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Std.Kit",
+          "occurrences": 40,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt",
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18075: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 401030202 [ Std.Kit ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "401040008": {
+      "id": "401040008",
+      "displayName": "926",
+      "aliases": [],
+      "category": "medical",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "926",
+          "occurrences": 49,
+          "sourceFiles": [
+            "2026.08.19-18.10.09.log.txt"
+          ],
+          "sample": "2026.08.19-18.10.09.log.txt:18073: [2026.08.19-15.13.18:936][776]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  18 equipItem 401040008 [ 926 ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "401040009": {
+      "id": "401040009",
+      "displayName": "100D",
+      "aliases": [],
+      "category": "medical",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "100D",
+          "occurrences": 14,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:534560: [2026.08.20-22.16.21:132][814]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  23 equipItem 401040009 [ 100D ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "404010006": {
+      "id": "404010006",
+      "displayName": "Taurine",
+      "aliases": [],
+      "category": "provision",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Taurine",
+          "occurrences": 14,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:534567: [2026.08.20-22.16.21:132][814]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  23 equipItem 404010006 [ Taurine ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    },
+    "491050006": {
+      "id": "491050006",
+      "displayName": "Treatment",
+      "aliases": [],
+      "category": "treatment",
+      "confidence": "high",
+      "evidence": [
+        {
+          "method": "direct_id_bracket_name",
+          "name": "Treatment",
+          "occurrences": 12,
+          "sourceFiles": [
+            "2026.08.20-23.18.35.txt"
+          ],
+          "sample": "2026.08.20-23.18.35.txt:534555: [2026.08.20-22.16.21:132][814]LogUnLua: Display: |LuaCore.cpp:2779|[EquipRecommendLog]- SearchedItems:  23 equipItem 491050006 [ Treatment ] [@G:\\OverseaProd0625\\DailyBuild\\CAGame\\Content\\Script\\UAGame\\Modules\\EquipRecommendModule\\EquipRecommendModel.lua:3253]"
+        }
+      ]
+    }
+  },
+  "mapMappings": {
+    "1102": {
+      "id": "1102",
+      "displayName": "Farm",
+      "rawName": "Farmland_715_Main",
+      "occurrences": 10,
+      "sourceFiles": [
+        "2026.08.22-17.55.40.txt",
+        "2026.08.23-19.17.48.txt",
+        "2026.08.24-17.07.49.txt",
+        "2026.08.24-18.08.48.txt"
+      ],
+      "evidenceSample": "2026.08.22-17.55.40.txt:66526: [2026.08.22-15.17.30:750][791]LogGameMode: Display: |UAGameInstanceGameInfoComponent.cpp:98|FindMapId:Farmland_715_Main-1102"
+    },
+    "1601": {
+      "id": "1601",
+      "displayName": "TV Station",
+      "rawName": "TVStation_Main",
+      "occurrences": 24,
+      "sourceFiles": [
+        "2026.08.19-18.10.09.log.txt",
+        "2026.08.20-23.18.35.txt",
+        "2026.08.22-17.55.40.txt",
+        "2026.08.23-19.17.48.txt"
+      ],
+      "evidenceSample": "2026.08.19-18.10.09.log.txt:33644: [2026.08.19-15.15.23:035][969]LogGameMode: Display: |UAGameInstanceGameInfoComponent.cpp:98|FindMapId:TVStation_Main-1601"
+    }
+  }
+}

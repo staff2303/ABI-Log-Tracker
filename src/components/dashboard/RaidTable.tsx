@@ -1,4 +1,5 @@
 import { ChevronRight } from "lucide-react";
+import { formatMapDisplayName } from "../../data/displayNameResolver";
 import type { Raid } from "../../types/raid";
 import { emptyValue, formatDateTime, formatDuration, formatLootValue, formatNumber, formatPercent } from "../../utils/format";
 import { OpponentBadge, ResultBadge, SquadBadge } from "../layout/StatusBadge";
@@ -39,20 +40,23 @@ export function RaidTable({ raids, onRaidSelect }: RaidTableProps) {
           </tr>
         </thead>
         <tbody>
-          {raids.map((raid) => (
-            <tr
-              key={raid.id}
-              className="group bg-abi-panel transition hover:bg-abi-panel2"
-              tabIndex={0}
-              onClick={() => onRaidSelect(raid.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  onRaidSelect(raid.id);
-                }
-              }}
-            >
-              <td className="table-cell font-mono">{formatDateTime(raid.basic.dateTime)}</td>
-              <td className="table-cell font-semibold">{raid.basic.map ?? emptyValue}</td>
+          {raids.map((raid) => {
+            const mapName = formatMapDisplayName(raid.basic.mapId, raid.basic.map);
+
+            return (
+              <tr
+                key={raid.id}
+                className="group bg-abi-panel transition hover:bg-abi-panel2"
+                tabIndex={0}
+                onClick={() => onRaidSelect(raid.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    onRaidSelect(raid.id);
+                  }
+                }}
+              >
+                <td className="table-cell font-mono">{formatDateTime(raid.basic.dateTime)}</td>
+                <td className="table-cell font-semibold">{mapName ?? emptyValue}</td>
               <td className="table-cell">{raid.basic.mode ?? emptyValue}</td>
               <td className="table-cell">{raid.basic.zone ?? emptyValue}</td>
               <td className="table-cell">
@@ -77,11 +81,12 @@ export function RaidTable({ raids, onRaidSelect }: RaidTableProps) {
               <td className="table-cell text-right font-mono">
                 {raid.rank && raid.rank.delta !== null ? `${raid.rank.delta > 0 ? "+" : ""}${raid.rank.delta}` : emptyValue}
               </td>
-              <td className="table-cell text-right">
-                <ChevronRight className="ml-auto text-abi-muted transition group-hover:text-abi-lime" size={16} />
-              </td>
-            </tr>
-          ))}
+                <td className="table-cell text-right">
+                  <ChevronRight className="ml-auto text-abi-muted transition group-hover:text-abi-lime" size={16} />
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

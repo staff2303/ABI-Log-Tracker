@@ -2,7 +2,6 @@ import { getWeaponName } from "../../data/weaponMap";
 import type { ParserWarning, RaidDebugMetrics, RaidSourceRange, SurvivalFieldPresence } from "../../types/parser";
 import type {
   DeathDetail,
-  EngagementDetail,
   KillDetail,
   Raid,
   RaidBasic,
@@ -13,6 +12,7 @@ import { applyDeathLine, createEmptyDeath, type ParsedReplayDeathInfo } from "./
 import { parseMapInfo } from "./parseBasic";
 import { parseKill } from "./parseKill";
 import { applyLootMetric, createEmptyLoot } from "./parseLoot";
+import { IncomingDamageCollector, linkIncomingDamageToDeath } from "./parseIncomingDamage";
 import { parseRankLine, type ParsedRankInfo } from "./parseRank";
 import { parseResultMetric } from "./parseResultMetric";
 import {
@@ -22,7 +22,7 @@ import {
   getSurvivalFieldForMetric,
 } from "./parseSurvival";
 import { createTeamDetail, type TeamResolution } from "./parseTeam";
-import { getLuaLineNumber, getNumberAfter, parseLogTimestamp } from "./parseUtils";
+import { getLuaLineNumber, parseLogTimestamp } from "./parseUtils";
 
 interface RaidBuilderOptions {
   roomId: string | null;
@@ -83,7 +83,7 @@ export class RaidBuilder {
   private readonly replayDeath: ParsedReplayDeathInfo | null;
   private readonly teamResolution: TeamResolution;
   private readonly kills: KillDetail[] = [];
-  private readonly engagements = new Map<string, EngagementDetail>();
+  private readonly incomingDamage = new IncomingDamageCollector();
   private readonly warnings: ParserWarning[] = [];
   private readonly startRecordIndex: number;
   private readonly deathCandidates: DeathCandidate[] = [];
@@ -95,9 +95,6 @@ export class RaidBuilder {
   private rankInfo: ParsedRankInfo | null = null;
   private death: DeathDetail | null = null;
   private resultMetricsApplied = false;
-  private pendingEngagementKey: string | null = null;
-  private pendingEngagementName: string | null = null;
-  private unknownEngagementCounter = 0;
   private currentDeathCandidate: DeathCandidate | null = null;
   private rawKillEvents = 0;
   private duplicateKillEventsRemoved = 0;
@@ -137,7 +134,6 @@ export class RaidBuilder {
       }
 
       this.kills.push(kill);
-      this.applyKillToEngagement(kill);
       return;
     }
 
@@ -146,14 +142,16 @@ export class RaidBuilder {
     }
 
     this.applyRankLine(line, sourceRecordIndex);
-    this.applyShootEnemyLine(line);
+    this.incomingDamage.consume(line, sourceRecordIndex);
     this.applyResultMetricLine(line);
   }
 
   finalize(finalizedAtEOF: boolean, sourceRecordIndex: number): RaidFinalizeResult {
     this.endRecordIndex = Math.max(this.endRecordIndex, sourceRecordIndex);
+    this.incomingDamage.finalize();
     this.deriveCombatFromEvents();
     this.death = this.resolveDeath(sourceRecordIndex);
+    const incomingDamage = linkIncomingDamageToDeath(this.incomingDamage.getEvents(), this.death?.killerNickname ?? null);
     const rankResolution = this.resolveRank();
 
     const finalizedAsPartial = finalizedAtEOF && !this.hasCompletionEvidence();
@@ -164,7 +162,7 @@ export class RaidBuilder {
       basic: this.basic,
       combat: this.combat,
       kills: this.kills,
-      engagements: Array.from(this.engagements.values()),
+      incomingDamage,
       death: this.basic.result === "dead" ? this.death : null,
       loot: this.loot,
       survival: this.survival,
@@ -186,6 +184,10 @@ export class RaidBuilder {
         deathCandidateCount: this.deathCandidates.length,
         selectedDeathRecordIndex: this.selectedDeathRecordIndex,
         deathResolutionMatchedBy: [...this.deathResolutionMatchedBy],
+        rawIncomingDamageEvents: this.incomingDamage.getRawEventCount(),
+        duplicateIncomingDamageEventsRemoved: this.incomingDamage.getDuplicateRemovedCount(),
+        fatalIncomingDamageEvents: incomingDamage.filter((event) => event.isFatalAttacker).length,
+        unavailableKillMetricEvents: this.kills.filter((kill) => kill.combatMetricsUnavailableReason !== null).length,
         finalizedAtEOF,
         finalizedAsPartial,
         survivalFields: { ...this.survivalFields },
@@ -270,78 +272,6 @@ export class RaidBuilder {
     };
   }
 
-  private applyShootEnemyLine(line: string): void {
-    if (!line.includes("Parse ShootEnemyEvents")) {
-      return;
-    }
-
-    const luaLine = getLuaLineNumber(line, "ShootEnemyEventObject.lua");
-
-    if (luaLine === 32) {
-      const match = line.match(/:\s*([^[\]]+)\s*\[/);
-      this.pendingEngagementName = match?.[1]?.trim() || null;
-      this.pendingEngagementKey = this.pendingEngagementName ? `name:${this.pendingEngagementName}` : this.createUnknownEngagementKey();
-
-      this.ensureEngagement(this.pendingEngagementKey, this.pendingEngagementName, null);
-      return;
-    }
-
-    if (!this.pendingEngagementKey) {
-      return;
-    }
-
-    if (luaLine === 33) {
-      const gid = this.parseShootEnemyTextValue(line);
-
-      if (gid) {
-        const nextKey = `gid:${gid}`;
-        const current = this.engagements.get(this.pendingEngagementKey);
-        const existing = this.ensureEngagement(nextKey, this.pendingEngagementName, gid);
-
-        if (current && current !== existing) {
-          existing.damage = sumNullable(existing.damage, current.damage);
-          existing.armorDamage = sumNullable(existing.armorDamage, current.armorDamage);
-          existing.hitCount = sumNullable(existing.hitCount, current.hitCount);
-          existing.penetrationCount = sumNullable(existing.penetrationCount, current.penetrationCount);
-          existing.weaponIds = mergeNumbers(existing.weaponIds, current.weaponIds);
-          existing.ammoIds = mergeNumbers(existing.ammoIds, current.ammoIds);
-          existing.weaponsAmmo = mergeStrings(existing.weaponsAmmo, current.weaponsAmmo);
-          existing.killed ||= current.killed;
-          this.engagements.delete(this.pendingEngagementKey);
-        }
-
-        this.pendingEngagementKey = nextKey;
-      }
-
-      return;
-    }
-
-    const engagement = this.engagements.get(this.pendingEngagementKey);
-
-    if (!engagement) {
-      return;
-    }
-
-    if (luaLine === 34) {
-      const weaponId = getNumberAfter("DeathCauserId", line);
-      if (weaponId !== null) {
-        engagement.weaponId ??= weaponId;
-        engagement.weaponName ??= getWeaponName(weaponId);
-        engagement.weaponIds = mergeNumbers(engagement.weaponIds, [weaponId]);
-        engagement.weaponsAmmo = mergeStrings(engagement.weaponsAmmo, [`DeathCauserId ${weaponId}`]);
-      }
-    } else if (luaLine === 35) {
-      engagement.penetrationCount = sumNullable(engagement.penetrationCount, getNumberAfter("\u662f\u5426\u7a7f\u900f", line) === 1 ? 1 : 0);
-    } else if (luaLine === 39) {
-      engagement.damage = sumNullable(engagement.damage, getNumberAfter("\u9020\u6210\u603b\u4f24\u5bb3", line));
-      engagement.hitCount = sumNullable(engagement.hitCount, 1);
-    } else if (luaLine === 40) {
-      engagement.armorDamage = sumNullable(engagement.armorDamage, getNumberAfter("\u62a4\u7532\u5438\u6536\u4f24\u5bb3", line));
-    } else if (luaLine === 42) {
-      engagement.killed = getNumberAfter("\u5bf9\u65b9\u72b6\u6001", line) === 2;
-    }
-  }
-
   private applyDeathCandidateLine(line: string, sourceRecordIndex: number): boolean {
     if (!line.includes("Parse BeKilledEvents")) {
       return false;
@@ -364,79 +294,6 @@ export class RaidBuilder {
       applyDeathLine(this.currentDeathCandidate.detail, line) ?? this.currentDeathCandidate.detail;
 
     return true;
-  }
-
-  private ensureEngagement(key: string, nickname: string | null, gid: string | null): EngagementDetail {
-    const existing = this.engagements.get(key);
-
-    if (existing) {
-      existing.opponentNickname = existing.opponentNickname === "Unknown" && nickname ? nickname : existing.opponentNickname;
-      existing.opponentGid ??= gid;
-      return existing;
-    }
-
-    const engagement: EngagementDetail = {
-      opponentGid: gid,
-      opponentNickname: nickname || "Unknown",
-      opponentType: "unknown",
-      damage: null,
-      armorDamage: null,
-      hitCount: null,
-      penetrationCount: null,
-      weaponId: null,
-      weaponName: null,
-      weaponIds: [],
-      ammoId: null,
-      ammoName: null,
-      ammoIds: [],
-      weaponsAmmo: [],
-      killed: false,
-    };
-
-    const matchingKill = this.findMatchingKillForEngagement(nickname, gid);
-
-    if (matchingKill) {
-      engagement.killed = true;
-      engagement.opponentType = matchingKill.opponentType;
-      engagement.weaponId = matchingKill.weaponId;
-      engagement.weaponName = matchingKill.weaponName;
-      engagement.weaponIds = matchingKill.weaponId === null ? [] : [matchingKill.weaponId];
-    }
-
-    this.engagements.set(key, engagement);
-    return engagement;
-  }
-
-  private createUnknownEngagementKey(): string {
-    this.unknownEngagementCounter += 1;
-    return `unknown:${this.unknownEngagementCounter}`;
-  }
-
-  private parseShootEnemyTextValue(line: string): string | null {
-    const eventOffset = line.indexOf("Parse ShootEnemyEvents");
-    const segment = eventOffset >= 0 ? line.slice(eventOffset) : line;
-    const match = segment.match(/:\s*([^[\]]+)\s*\[/);
-    return match?.[1]?.trim() || null;
-  }
-
-  private applyKillToEngagement(kill: KillDetail): void {
-    const matchingEngagement = Array.from(this.engagements.values()).find((engagement) =>
-      isSameOpponent(engagement.opponentGid, engagement.opponentNickname, kill.enemyGid, kill.opponentNickname),
-    );
-
-    if (!matchingEngagement) {
-      return;
-    }
-
-    matchingEngagement.killed = true;
-    matchingEngagement.opponentType = kill.opponentType;
-    matchingEngagement.weaponId ??= kill.weaponId;
-    matchingEngagement.weaponName ??= kill.weaponName;
-    matchingEngagement.weaponIds = kill.weaponId === null ? matchingEngagement.weaponIds : mergeNumbers(matchingEngagement.weaponIds, [kill.weaponId]);
-  }
-
-  private findMatchingKillForEngagement(nickname: string | null, gid: string | null): KillDetail | null {
-    return this.kills.find((kill) => isSameOpponent(gid, nickname, kill.enemyGid, kill.opponentNickname)) ?? null;
   }
 
   private isDuplicateKill(nextKill: KillDetail): boolean {
@@ -731,9 +588,9 @@ export class RaidBuilder {
         { label: `kills[${index}].damage`, value: kill.damage },
         { label: `kills[${index}].armorDamage`, value: kill.armorDamage },
       ]),
-      ...Array.from(this.engagements.values()).flatMap((engagement, index) => [
-        { label: `engagements[${index}].damage`, value: engagement.damage },
-        { label: `engagements[${index}].armorDamage`, value: engagement.armorDamage },
+      ...this.incomingDamage.getEvents().flatMap((event, index) => [
+        { label: `incomingDamage[${index}].damage`, value: event.damage },
+        { label: `incomingDamage[${index}].armorAbsorbedDamage`, value: event.armorAbsorbedDamage },
       ]),
     ];
   }
@@ -756,19 +613,6 @@ function isDuplicateKillEvent(left: KillDetail, right: KillDetail): boolean {
     nullableEqual(left.deathType, right.deathType) &&
     nullableEqual(left.rankScoreGained, right.rankScoreGained)
   );
-}
-
-function isSameOpponent(
-  leftGid: string | null,
-  leftNickname: string | null,
-  rightGid: string | null,
-  rightNickname: string | null,
-): boolean {
-  if (leftGid && rightGid) {
-    return leftGid === rightGid;
-  }
-
-  return Boolean(leftNickname && rightNickname && leftNickname === rightNickname);
 }
 
 function nullableEqual(left: number | null, right: number | null): boolean {
@@ -848,20 +692,4 @@ function mergeMissingDeathFields(target: DeathDetail, fallback: DeathDetail): vo
   target.deathServerTime ??= fallback.deathServerTime;
   target.replayDemoStartTime ??= fallback.replayDemoStartTime;
   target.replayDemoEndTime ??= fallback.replayDemoEndTime;
-}
-
-function sumNullable(current: number | null, next: number | null): number | null {
-  if (next === null) {
-    return current;
-  }
-
-  return (current ?? 0) + next;
-}
-
-function mergeStrings(current: string[], next: string[]): string[] {
-  return Array.from(new Set([...current, ...next]));
-}
-
-function mergeNumbers(current: number[], next: number[]): number[] {
-  return Array.from(new Set([...current, ...next]));
 }

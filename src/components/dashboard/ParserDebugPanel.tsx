@@ -45,7 +45,7 @@ export function ParserDebugPanel({ debugInfo, decoderStats }: ParserDebugPanelPr
       <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
         <DebugStat label="Deduped Kills" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.kills, 0)} />
         <DebugStat label="Kills Removed" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.duplicateKillEventsRemoved, 0)} />
-        <DebugStat label="Engagements Parsed" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.engagements, 0)} />
+        <DebugStat label="Incoming Damage" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.incomingDamage, 0)} />
         <DebugStat label="Death Candidates" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.deathCandidateCount, 0)} />
         <DebugStat label="Death Parsed" value={debugInfo.raidSummaries.filter((raid) => raid.death !== "n/a").length} />
       </div>
@@ -62,12 +62,19 @@ export function ParserDebugPanel({ debugInfo, decoderStats }: ParserDebugPanelPr
         <DebugStat label="EOF Finalized" value={debugInfo.raidSummaries.filter((raid) => raid.finalizedAtEOF).length} />
         <DebugStat label="Team Resolved" value={debugInfo.raidSummaries.filter((raid) => raid.teamMemberCount !== null).length} />
         <DebugStat label="Rank Parsed" value={debugInfo.raidSummaries.filter((raid) => raid.rankStatus === "parsed").length} />
+        <DebugStat label="Incoming Raw" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.rawIncomingDamageEvents, 0)} />
+        <DebugStat label="Incoming Removed" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.duplicateIncomingDamageEventsRemoved, 0)} />
         <DebugStat label="Parser Warnings" value={debugInfo.warnings.length} />
+      </div>
+
+      <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        <DebugStat label="Incoming Killer" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.fatalIncomingDamageEvents, 0)} />
+        <DebugStat label="Kill Metric —" value={debugInfo.raidSummaries.reduce((sum, raid) => sum + raid.unavailableKillMetricEvents, 0)} />
       </div>
 
       {debugInfo.raidSummaries.length > 0 && (
         <div className="thin-scrollbar mt-3 overflow-auto border border-abi-line bg-abi-black">
-          <table className="min-w-[1700px] w-full border-collapse">
+          <table className="min-w-[1900px] w-full border-collapse">
             <thead>
               <tr>
                 <th className="table-head">Raid</th>
@@ -78,7 +85,11 @@ export function ParserDebugPanel({ debugInfo, decoderStats }: ParserDebugPanelPr
                 <th className="table-head text-right">Raw</th>
                 <th className="table-head text-right">Removed</th>
                 <th className="table-head text-right">Kills</th>
-                <th className="table-head text-right">Engagements</th>
+                <th className="table-head text-right">Incoming</th>
+                <th className="table-head text-right">In Raw</th>
+                <th className="table-head text-right">In Removed</th>
+                <th className="table-head text-right">Fatal In</th>
+                <th className="table-head text-right">Kill —</th>
                 <th className="table-head text-right">Death Cand.</th>
                 <th className="table-head text-right">Selected</th>
                 <th className="table-head">Death</th>
@@ -112,7 +123,11 @@ export function ParserDebugPanel({ debugInfo, decoderStats }: ParserDebugPanelPr
                   <td className="table-cell text-right font-mono">{formatNumber(raid.rawKillEvents)}</td>
                   <td className="table-cell text-right font-mono">{formatNumber(raid.duplicateKillEventsRemoved)}</td>
                   <td className="table-cell text-right font-mono">{formatNumber(raid.kills)}</td>
-                  <td className="table-cell text-right font-mono">{formatNumber(raid.engagements)}</td>
+                  <td className="table-cell text-right font-mono">{formatNumber(raid.incomingDamage)}</td>
+                  <td className="table-cell text-right font-mono">{formatNumber(raid.rawIncomingDamageEvents)}</td>
+                  <td className="table-cell text-right font-mono">{formatNumber(raid.duplicateIncomingDamageEventsRemoved)}</td>
+                  <td className="table-cell text-right font-mono">{formatNumber(raid.fatalIncomingDamageEvents)}</td>
+                  <td className="table-cell text-right font-mono">{formatNumber(raid.unavailableKillMetricEvents)}</td>
                   <td className="table-cell text-right font-mono">{formatNumber(raid.deathCandidateCount)}</td>
                   <td className="table-cell text-right font-mono">{formatNumber(raid.selectedDeathRecordIndex)}</td>
                   <td className="table-cell"><SectionStatus value={raid.death} /></td>

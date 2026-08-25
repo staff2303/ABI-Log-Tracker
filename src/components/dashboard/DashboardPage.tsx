@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatMapDisplayName } from "../../data/displayNameResolver";
 import type { ParserDebugInfo } from "../../types/parser";
 import type { Raid } from "../../types/raid";
 import {
@@ -36,7 +37,7 @@ export function DashboardPage({ raids, debugInfo, decoderStats, onRaidSelect }: 
   }, [filters, raids]);
 
   const stats = useMemo(() => calculateDashboardStats(filteredRaids), [filteredRaids]);
-  const maps = useMemo(() => getUniqueOptions(raids, (raid) => raid.basic.map), [raids]);
+  const maps = useMemo(() => getUniqueOptions(raids, (raid) => formatMapDisplayName(raid.basic.mapId, raid.basic.map)), [raids]);
   const modes = useMemo(() => getUniqueOptions(raids, (raid) => raid.basic.mode), [raids]);
   const zones = useMemo(() => getUniqueOptions(raids, (raid) => raid.basic.zone), [raids]);
 

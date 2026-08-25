@@ -1,6 +1,11 @@
 import { MapPinned, Skull } from "lucide-react";
+import {
+  formatAmmoDisplayName,
+  formatEquipmentDisplayName,
+  formatWeaponDisplayName,
+} from "../../data/displayNameResolver";
 import type { DeathDetail } from "../../types/raid";
-import { displayValue, formatBoolean, formatNumber, formatVector } from "../../utils/format";
+import { displayValue, formatBoolean, formatId, formatNumber, formatVector } from "../../utils/format";
 import { OpponentBadge } from "../layout/StatusBadge";
 import { SectionPanel } from "../layout/SectionPanel";
 import { InfoGrid } from "./InfoGrid";
@@ -31,14 +36,14 @@ export function DeathDetailPanel({ death }: DeathDetailPanelProps) {
             { label: "킬러 유형", value: death.killerType ? <OpponentBadge type={death.killerType} /> : displayValue(null) },
             { label: "킬러 레벨", value: formatNumber(death.killerLevel) },
             { label: "킬러 랭크", value: displayValue(death.killerRank) },
-            { label: "무기", value: displayValue(death.weapon) },
-            { label: "Weapon ID", value: formatNumber(death.weaponId) },
-            { label: "탄약/원인", value: displayValue(death.ammoOrCause) },
-            { label: "DeathCauser ID", value: formatNumber(death.deathCauserId) },
+            { label: "무기", value: displayValue(formatWeaponDisplayName(death.weaponId, death.weapon)) },
+            { label: "Weapon ID", value: formatId(death.weaponId) },
+            { label: "탄약/원인", value: displayValue(formatAmmoDisplayName(death.deathCauserId ?? death.ammoId, death.ammoOrCause)) },
+            { label: "DeathCauser ID", value: formatId(death.deathCauserId) },
             { label: "피격 부위", value: displayValue(death.hitBodyPart), tone: "red" },
             { label: "최종 피해", value: formatNumber(death.finalDamage), tone: "red" },
             { label: "관통 여부", value: formatBoolean(death.penetrated), tone: death.penetrated ? "red" : "default" },
-            { label: "방어구", value: displayValue(death.armor) },
+            { label: "방어구", value: displayValue(formatEquipmentDisplayName(death.armorId, death.armor)) },
             { label: "Face Hit", value: formatBoolean(death.faceHit), tone: death.faceHit ? "red" : "default" },
             { label: "DBNO", value: formatBoolean(death.dbno) },
             { label: "Victim", value: displayValue(death.victimName) },
