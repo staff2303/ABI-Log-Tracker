@@ -91,7 +91,13 @@ export function resolveTeamForBasic(basic: RaidBasic, snapshots: readonly TeamSn
     };
   }
 
-  if (basic.hasTeammate === true || basic.squad === "team" || (basic.teamType !== null && basic.teamType > 1)) {
+  const numericTeamType = basic.teamType === null ? null : Number(basic.teamType);
+
+  if (
+    basic.hasTeammate === true ||
+    basic.squad === "team" ||
+    (numericTeamType !== null && Number.isFinite(numericTeamType) && numericTeamType > 1)
+  ) {
     return {
       type: "team",
       memberCount: null,

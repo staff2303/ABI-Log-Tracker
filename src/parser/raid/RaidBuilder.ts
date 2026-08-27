@@ -615,7 +615,7 @@ function isDuplicateKillEvent(left: KillDetail, right: KillDetail): boolean {
   );
 }
 
-function nullableEqual(left: number | null, right: number | null): boolean {
+function nullableEqual(left: number | string | null, right: number | string | null): boolean {
   return left === right;
 }
 

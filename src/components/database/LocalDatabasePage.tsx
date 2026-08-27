@@ -10,6 +10,7 @@ interface LocalDatabasePageProps {
   onNavigateImport: () => void;
   onExportBackup: () => void;
   onImportBackup: (file: File) => void;
+  onOpenDatabaseFolder: () => void;
   onClearDatabase: () => void;
 }
 
@@ -22,12 +23,13 @@ export function LocalDatabasePage({
   onNavigateImport,
   onExportBackup,
   onImportBackup,
+  onOpenDatabaseFolder,
   onClearDatabase,
 }: LocalDatabasePageProps) {
   return (
     <div className="space-y-4">
       <section className="panel p-3">
-        <p className="text-[11px] uppercase text-abi-muted">Local IndexedDB</p>
+        <p className="text-[11px] uppercase text-abi-muted">Local SQLite</p>
         <h1 className="mt-1 text-xl font-semibold text-abi-text">Local Database</h1>
       </section>
 
@@ -40,6 +42,7 @@ export function LocalDatabasePage({
         onNavigateImport={onNavigateImport}
         onExportBackup={onExportBackup}
         onImportBackup={onImportBackup}
+        onOpenDatabaseFolder={onOpenDatabaseFolder}
         onClearDatabase={onClearDatabase}
       />
     </div>

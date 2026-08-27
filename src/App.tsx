@@ -24,7 +24,7 @@ import {
   resetOrDeleteMapping,
   saveMapping,
 } from "./db/mappingRepository";
-import { getStorageInfo, requestStoragePersistence } from "./db/storage";
+import { getStorageInfo, openDatabaseFolder } from "./db/storage";
 import { createMappingResolver } from "./data/mappingResolver";
 import type { MappingCategory } from "./db/mappingTypes";
 import type { ImportCommitSummary, ImportHistory, StorageInfo, StoredRaid } from "./db/types";
@@ -94,25 +94,31 @@ export default function App() {
   const [storageInfo, setStorageInfo] = useState<StorageInfo>({ persisted: null, usage: null, quota: null });
   const [debugInfo, setDebugInfo] = useState<ParserDebugInfo | null>(null);
   const [decoderStats, setDecoderStats] = useState<StreamingDecoderStats | null>(null);
+  const [databaseError, setDatabaseError] = useState<string | null>(null);
 
   const refreshDatabaseState = useCallback(async () => {
-    await ensureBuiltInMappingsSeeded();
+    try {
+      await ensureBuiltInMappingsSeeded();
 
-    const [nextRaids, nextImports, nextSourceFiles, nextStorageInfo] = await Promise.all([
-      getAllRaids(),
-      getRecentImports(),
-      getAllImportedSourceFiles(),
-      getStorageInfo().catch(() => ({ persisted: null, usage: null, quota: null })),
-    ]);
+      const [nextRaids, nextImports, nextSourceFiles, nextStorageInfo] = await Promise.all([
+        getAllRaids(),
+        getRecentImports(),
+        getAllImportedSourceFiles(),
+        getStorageInfo().catch(() => ({ persisted: null, usage: null, quota: null })),
+      ]);
 
-    await discoverMappingsForExistingRaidsOnce(nextRaids);
-    const nextMappings = await getAllMappings();
+      await discoverMappingsForExistingRaidsOnce(nextRaids);
+      const nextMappings = await getAllMappings();
 
-    setRaids(nextRaids);
-    setImports(nextImports);
-    setSourceFiles(nextSourceFiles);
-    setMappings(nextMappings);
-    setStorageInfo(nextStorageInfo);
+      setRaids(nextRaids);
+      setImports(nextImports);
+      setSourceFiles(nextSourceFiles);
+      setMappings(nextMappings);
+      setStorageInfo(nextStorageInfo);
+      setDatabaseError(null);
+    } catch (error) {
+      setDatabaseError(error instanceof Error ? error.message : String(error));
+    }
   }, []);
 
   useEffect(() => {
@@ -123,9 +129,6 @@ export default function App() {
 
   useEffect(() => {
     void refreshDatabaseState();
-    void requestStoragePersistence()
-      .catch(() => null)
-      .then(() => refreshDatabaseState());
   }, [refreshDatabaseState]);
 
   const selectedRaid = useMemo(() => {
@@ -183,6 +186,13 @@ export default function App() {
       window.alert(error instanceof Error ? error.message : String(error));
     }
   };
+  const handleOpenDatabaseFolder = async () => {
+    try {
+      await openDatabaseFolder();
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : String(error));
+    }
+  };
   const handleImportBackup = async (file: File) => {
     try {
       const summary = await importBackupFile(file);
@@ -197,6 +207,7 @@ export default function App() {
           lastModified: file.lastModified || null,
           importedAt: now,
           parserVersion: "backup",
+          mappingScannerVersion: null,
         },
         history: {
           id: `backup-${Date.now()}`,
@@ -216,11 +227,20 @@ export default function App() {
         totalStoredRaids: summary.totalStoredRaids,
         conflicts: [],
         mappingDiscovery: {
+          scannerVersion: null,
+          discoveredIds: 0,
           newIds: 0,
           rediscoveredIds: 0,
+          nameCandidates: 0,
+          blueprintCandidates: 0,
+          evidenceRecords: 0,
           autoConfirmed: 0,
+          typed: 0,
+          inferred: 0,
+          unresolved: 0,
           unconfirmed: 0,
           conflicts: 0,
+          patternInferred: 0,
           processedOccurrences: 0,
         },
       });
@@ -238,6 +258,16 @@ export default function App() {
       onNavigateDatabase={navigateDatabase}
       onNavigateMappings={navigateMappings}
     >
+      {databaseError && (
+        <section className="panel mb-4 border-abi-red/70 bg-abi-red/10 p-3">
+          <p className="text-[11px] uppercase text-abi-red">Database Error</p>
+          <h2 className="mt-1 text-base font-semibold text-abi-text">데이터베이스를 열 수 없습니다.</h2>
+          <p className="mt-2 break-all text-xs text-abi-muted">{databaseError}</p>
+          <button className="secondary-button mt-3" onClick={() => void refreshDatabaseState()}>
+            다시 시도
+          </button>
+        </section>
+      )}
       {route.screen === "import" && (
         <ImportPage
           onImported={(summary, nextDecoderStats, nextDebugInfo) => {
@@ -297,6 +327,7 @@ export default function App() {
           onNavigateImport={navigateImport}
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
+          onOpenDatabaseFolder={handleOpenDatabaseFolder}
           onClearDatabase={handleClearDatabase}
         />
       )}

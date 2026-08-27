@@ -1,5 +1,6 @@
 import type { ParserDebugInfo } from "./parser";
 import type { Raid } from "./raid";
+import type { MappingDiscoveryEntry } from "../db/mappingTypes";
 
 export type StreamingDecoderStatus = "idle" | "processing" | "success" | "cancelled" | "error";
 
@@ -24,6 +25,7 @@ export interface StreamingDecoderSnapshot {
   errorMessage: string | null;
   raids: Raid[];
   debug: ParserDebugInfo | null;
+  mappingDiscoveries: MappingDiscoveryEntry[];
 }
 
 export type DecoderWorkerRequest =
@@ -45,12 +47,14 @@ export type DecoderWorkerResponse =
       stats: StreamingDecoderStats;
       raids: Raid[];
       debug: ParserDebugInfo;
+      mappingDiscoveries: MappingDiscoveryEntry[];
     }
   | {
       type: "cancelled";
       stats: StreamingDecoderStats;
       raids: Raid[];
       debug: ParserDebugInfo;
+      mappingDiscoveries: MappingDiscoveryEntry[];
     }
   | {
       type: "error";

@@ -2,9 +2,11 @@ import { Download, Plus, RotateCcw, Save, Search, Trash2, Upload } from "lucide-
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { mappingCategories, mappingCategoryLabels, mappingStatusLabels } from "../../db/mappingLabels";
+import { isIgnoredMappingBlueprint } from "../../db/mappingCandidateFilters";
+import { createMappingKey } from "../../db/mappingIdentity";
 import type { SaveMappingInput } from "../../db/mappingRepository";
 import { summarizeMappings } from "../../db/mappingRepository";
-import type { MappingCategory, MappingRecord, MappingStatus, MappingUsageStats } from "../../db/mappingTypes";
+import type { MappingCategory, MappingNamespace, MappingRecord, MappingStatus, MappingUsageStats } from "../../db/mappingTypes";
 import type { StoredRaid } from "../../db/types";
 import { getConfirmedDisplayName } from "../../data/mappingResolver";
 import { cn } from "../../utils/classNames";
@@ -13,7 +15,7 @@ import { SectionPanel } from "../layout/SectionPanel";
 import { StatusBadge } from "../layout/StatusBadge";
 
 type StatusFilter = "all" | MappingStatus;
-type SortKey = "id" | "name" | "category" | "occurrenceCount" | "lastSeenAt" | "status";
+type SortKey = "rawId" | "name" | "category" | "occurrenceCount" | "lastSeenAt" | "status" | "namespace";
 
 interface MappingManagementPageProps {
   mappings: MappingRecord[];
@@ -28,7 +30,8 @@ interface MappingManagementPageProps {
 }
 
 interface MappingDraft {
-  id: string;
+  namespace: MappingNamespace;
+  rawId: string;
   category: MappingCategory;
   name: string;
   status: MappingStatus;
@@ -37,7 +40,8 @@ interface MappingDraft {
 }
 
 const defaultDraft: MappingDraft = {
-  id: "",
+  namespace: "item",
+  rawId: "",
   category: "weapon",
   name: "",
   status: "confirmed",
@@ -78,15 +82,15 @@ export function MappingManagementPage({
     const id = params.get("id");
     const status = params.get("status");
 
-    if (status === "confirmed" || status === "unconfirmed" || status === "conflict") {
+    if (isMappingStatus(status)) {
       setStatusFilter(status);
     }
 
     if (id) {
       setQuery(id);
-      setEditingId(id);
-      const mapping = mappings.find((item) => item.id === id);
-      setDraft(mapping ? createDraftFromMapping(mapping) : { ...defaultDraft, id });
+      const mapping = mappings.find((item) => item.id === id || item.rawId === id) ?? null;
+      setEditingId(mapping?.id ?? id);
+      setDraft(mapping ? createDraftFromMapping(mapping) : { ...defaultDraft, rawId: id });
     }
   }, [mappings]);
 
@@ -103,9 +107,13 @@ export function MappingManagementPage({
 
         const haystack = [
           mapping.id,
+          mapping.namespace,
+          mapping.rawId,
           getDisplayName(mapping),
           mapping.builtinName,
           mapping.userName,
+          mapping.internalName,
+          mapping.canonicalInternalName,
           mapping.rawBlueprint,
           mapping.aliases.join(" "),
           mapping.candidateNames.map((candidate) => candidate.name).join(" "),
@@ -136,7 +144,8 @@ export function MappingManagementPage({
     setIsSaving(true);
     try {
       await onSave({
-        id: draft.id,
+        namespace: draft.namespace,
+        rawId: draft.rawId,
         category: draft.category,
         name: draft.name,
         status: draft.status,
@@ -185,7 +194,7 @@ export function MappingManagementPage({
               className="secondary-button"
               disabled={isMaintenanceRunning}
               onClick={() => {
-                void runMaintenance("기본 매핑을 IndexedDB에 저장/동기화했습니다.", onSyncBuiltIns);
+                void runMaintenance("기본 매핑을 SQLite에 저장/동기화했습니다.", onSyncBuiltIns);
               }}
             >
               <Save size={16} aria-hidden="true" />
@@ -271,7 +280,8 @@ export function MappingManagementPage({
               >
                 <option value="occurrenceCount">발견 횟수</option>
                 <option value="lastSeenAt">최근 발견</option>
-                <option value="id">ID</option>
+                <option value="rawId">ID</option>
+                <option value="namespace">Namespace</option>
                 <option value="name">이름</option>
                 <option value="category">카테고리</option>
                 <option value="status">상태</option>
@@ -304,7 +314,7 @@ export function MappingManagementPage({
             )}
 
             <div className="thin-scrollbar overflow-x-auto">
-              <table className="min-w-[1120px] w-full border-collapse">
+              <table className="min-w-[1240px] w-full border-collapse">
                 <thead>
                   <tr>
                     <th className="table-head w-10">
@@ -316,11 +326,14 @@ export function MappingManagementPage({
                         }}
                       />
                     </th>
+                    <th className="table-head">Namespace</th>
                     <th className="table-head">ID</th>
                     <th className="table-head">이름</th>
+                    <th className="table-head">Internal</th>
                     <th className="table-head">카테고리</th>
                     <th className="table-head">상태</th>
                     <th className="table-head text-right">발견</th>
+                    <th className="table-head text-right">로그</th>
                     <th className="table-head">최근 발견</th>
                     <th className="table-head">후보</th>
                     <th className="table-head text-right">Used In</th>
@@ -330,6 +343,8 @@ export function MappingManagementPage({
                   {filteredMappings.map((mapping) => {
                     const usage = usageById.get(mapping.id) ?? createEmptyUsage();
                     const checked = selectedIds.includes(mapping.id);
+                    const nameCandidates = getNameCandidates(mapping);
+                    const blueprintCandidates = getBlueprintCandidates(mapping);
 
                     return (
                       <tr
@@ -354,17 +369,22 @@ export function MappingManagementPage({
                             }}
                           />
                         </td>
-                        <td className="table-cell font-mono">{mapping.id}</td>
+                        <td className="table-cell font-mono">{mapping.namespace}</td>
+                        <td className="table-cell font-mono">{mapping.rawId}</td>
                         <td className="table-cell max-w-64 truncate font-semibold">{displayValue(getDisplayName(mapping))}</td>
+                        <td className="table-cell max-w-56 truncate font-mono">{displayValue(mapping.canonicalInternalName ?? mapping.internalName)}</td>
                         <td className="table-cell">{mappingCategoryLabels[mapping.category]}</td>
                         <td className="table-cell">
                           <MappingStatusBadge status={mapping.status} />
                         </td>
                         <td className="table-cell text-right font-mono">{formatNumber(mapping.occurrenceCount)}</td>
+                        <td className="table-cell text-right font-mono">{formatNumber(mapping.sourceFileIds.length)}</td>
                         <td className="table-cell font-mono">{formatOptionalDate(mapping.lastSeenAt)}</td>
                         <td className="table-cell max-w-52 truncate">
-                          {mapping.candidateNames.length > 0
-                            ? mapping.candidateNames.map((candidate) => `${candidate.name} (${candidate.occurrences})`).join(", ")
+                          {nameCandidates.length > 0
+                            ? nameCandidates.map((candidate) => `${candidate.name} (${candidate.occurrences})`).join(", ")
+                            : blueprintCandidates.length > 0
+                              ? blueprintCandidates.map((candidate) => `${candidate.name} (${candidate.occurrences})`).join(", ")
                             : emptyValue}
                         </td>
                         <td className="table-cell text-right font-mono">
@@ -399,7 +419,9 @@ function SummaryStrip({ summary }: { summary: ReturnType<typeof summarizeMapping
     <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-6">
       <SummaryMetric label="Total" value={summary.total} />
       <SummaryMetric label="Confirmed" value={summary.confirmed} tone="green" />
-      <SummaryMetric label="Unconfirmed" value={summary.unconfirmed} tone="amber" />
+      <SummaryMetric label="Typed" value={summary.typed} />
+      <SummaryMetric label="Inferred" value={summary.inferred} tone="amber" />
+      <SummaryMetric label="Unresolved" value={summary.unresolved + summary.unconfirmed} tone="amber" />
       <SummaryMetric label="Conflict" value={summary.conflict} tone="red" />
       <SummaryMetric label="Built-in" value={summary.bySource.builtin} />
       <SummaryMetric label="Log" value={summary.bySource.log} />
@@ -426,13 +448,15 @@ function SummaryMetric({ label, value, tone = "default" }: { label: string; valu
 function SegmentedStatus({ value, onChange }: { value: StatusFilter; onChange: (value: StatusFilter) => void }) {
   const items: Array<{ value: StatusFilter; label: string }> = [
     { value: "all", label: "전체" },
+    { value: "unresolved", label: "미해결" },
+    { value: "typed", label: "유형" },
+    { value: "inferred", label: "추론" },
     { value: "confirmed", label: "확인됨" },
-    { value: "unconfirmed", label: "미확인" },
     { value: "conflict", label: "충돌" },
   ];
 
   return (
-    <div className="grid grid-cols-4 border border-abi-line bg-abi-black text-xs">
+    <div className="grid grid-cols-6 border border-abi-line bg-abi-black text-xs">
       {items.map((item) => (
         <button
           key={item.value}
@@ -485,14 +509,30 @@ function MappingEditor({
       action={mapping && <MappingStatusBadge status={mapping.status} />}
     >
       <div className="space-y-3">
-        <Field label="ID">
-          <input
-            className="w-full border border-abi-line bg-abi-black px-3 py-2 font-mono text-xs text-abi-text outline-none"
-            value={draft.id}
-            disabled={!isNew}
-            onChange={(event) => onDraftChange({ ...draft, id: event.target.value })}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Namespace">
+            <select
+              className="w-full border border-abi-line bg-abi-black px-3 py-2 text-xs text-abi-text"
+              value={draft.namespace}
+              disabled={!isNew}
+              onChange={(event) => onDraftChange({ ...draft, namespace: event.target.value as MappingNamespace })}
+            >
+              <option value="item">item</option>
+              <option value="map">map</option>
+              <option value="skin">skin</option>
+              <option value="gameplay_tag">gameplay_tag</option>
+              <option value="unknown">unknown</option>
+            </select>
+          </Field>
+          <Field label="ID">
+            <input
+              className="w-full border border-abi-line bg-abi-black px-3 py-2 font-mono text-xs text-abi-text outline-none"
+              value={draft.rawId}
+              disabled={!isNew}
+              onChange={(event) => onDraftChange({ ...draft, rawId: event.target.value })}
+            />
+          </Field>
+        </div>
         <Field label="이름">
           <input
             className="w-full border border-abi-line bg-abi-black px-3 py-2 text-xs text-abi-text outline-none"
@@ -521,6 +561,9 @@ function MappingEditor({
               value={draft.status}
               onChange={(event) => onDraftChange({ ...draft, status: event.target.value as MappingStatus })}
             >
+              <option value="unresolved">Unresolved</option>
+              <option value="typed">Typed</option>
+              <option value="inferred">Inferred</option>
               <option value="confirmed">Confirmed</option>
               <option value="unconfirmed">Unconfirmed</option>
               <option value="conflict">Conflict</option>
@@ -546,9 +589,15 @@ function MappingEditor({
         {mapping && (
           <div className="grid grid-cols-2 gap-2 text-xs">
             <Detail label="Builtin" value={mapping.builtinName} />
+            <Detail label="Namespace" value={mapping.namespace} />
+            <Detail label="Raw ID" value={mapping.rawId} />
             <Detail label="Source" value={mapping.source} />
+            <Detail label="Confidence" value={mapping.confidence} />
+            <Detail label="Internal" value={mapping.canonicalInternalName ?? mapping.internalName} />
             <Detail label="Occurrences" value={formatNumber(mapping.occurrenceCount)} />
+            <Detail label="Source Logs" value={formatNumber(mapping.sourceFileIds.length)} />
             <Detail label="Last Seen" value={formatOptionalDate(mapping.lastSeenAt)} />
+            <Detail label="Evidence" value={formatNumber(mapping.evidence.length)} />
             <Detail label="Kills" value={formatNumber(usage.kills)} />
             <Detail label="Deaths" value={formatNumber(usage.deaths)} />
             <Detail label="Incoming" value={formatNumber(usage.incoming)} />
@@ -556,18 +605,48 @@ function MappingEditor({
           </div>
         )}
 
-        {mapping?.candidateNames.length ? (
+        {mapping && getNameCandidates(mapping).length > 0 ? (
           <div className="border border-abi-line bg-abi-black p-3 text-xs">
-            <p className="text-[11px] uppercase text-abi-muted">Candidates</p>
+            <p className="text-[11px] uppercase text-abi-muted">Name Candidates</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {mapping.candidateNames.map((candidate) => (
+              {getNameCandidates(mapping).map((candidate) => (
                 <button
                   key={candidate.name}
                   className="border border-abi-line px-2 py-1 text-abi-text hover:border-abi-olive"
                   onClick={() => onDraftChange({ ...draft, name: candidate.name, status: "confirmed" })}
                 >
-                  {candidate.name} ({formatNumber(candidate.occurrences)})
+                  {candidate.name} ({formatNumber(candidate.occurrences)} / {formatNumber(candidate.sourceFileIds.length)} logs)
                 </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {mapping && getBlueprintCandidates(mapping).length > 0 ? (
+          <div className="border border-abi-line bg-abi-black p-3 text-xs">
+            <p className="text-[11px] uppercase text-abi-muted">Blueprint Candidates</p>
+            <div className="mt-2 space-y-1">
+              {getBlueprintCandidates(mapping).map((candidate) => (
+                <div key={candidate.name} className="flex items-center justify-between gap-3 border border-abi-line px-2 py-1">
+                  <span className="truncate font-mono text-abi-text">{candidate.name}</span>
+                  <span className="shrink-0 font-mono text-abi-muted">
+                    {formatNumber(candidate.occurrences)} / {formatNumber(candidate.sourceFileIds.length)} logs
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {mapping?.evidence.length ? (
+          <div className="border border-abi-line bg-abi-black p-3 text-xs">
+            <p className="text-[11px] uppercase text-abi-muted">Evidence</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {summarizeEvidence(mapping).map((item) => (
+                <div key={`${item.type}:${item.value ?? ""}`} className="border border-abi-line px-2 py-1">
+                  <p className="truncate text-abi-muted">{item.type}</p>
+                  <p className="mt-1 truncate font-mono text-abi-text">{formatNumber(item.occurrences)}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -621,12 +700,17 @@ function MappingStatusBadge({ status }: { status: MappingStatus }) {
     return <StatusBadge tone="red">{mappingStatusLabels[status]}</StatusBadge>;
   }
 
+  if (status === "typed") {
+    return <StatusBadge tone="muted">{mappingStatusLabels[status]}</StatusBadge>;
+  }
+
   return <StatusBadge tone="amber">{mappingStatusLabels[status]}</StatusBadge>;
 }
 
 function createDraftFromMapping(mapping: MappingRecord): MappingDraft {
   return {
-    id: mapping.id,
+    namespace: mapping.namespace,
+    rawId: mapping.rawId,
     category: mapping.category,
     name: getDisplayName(mapping) ?? "",
     status: mapping.status,
@@ -636,16 +720,44 @@ function createDraftFromMapping(mapping: MappingRecord): MappingDraft {
 }
 
 function getDisplayName(mapping: MappingRecord): string | null {
-  return getConfirmedDisplayName(mapping) ?? mapping.name ?? mapping.userName ?? mapping.builtinName ?? null;
+  return getConfirmedDisplayName(mapping) ?? mapping.displayName ?? mapping.name ?? mapping.userName ?? mapping.builtinName ?? null;
+}
+
+function getNameCandidates(mapping: MappingRecord) {
+  return mapping.candidateNames.filter((candidate) => candidate.source !== "blueprint");
+}
+
+function getBlueprintCandidates(mapping: MappingRecord) {
+  return mapping.candidateNames.filter((candidate) => candidate.source === "blueprint" && !isIgnoredMappingBlueprint(candidate.name));
+}
+
+function summarizeEvidence(mapping: MappingRecord): Array<{ type: string; value: string | null; occurrences: number }> {
+  const byType = new Map<string, { type: string; value: string | null; occurrences: number }>();
+
+  mapping.evidence.forEach((evidence) => {
+    const key = `${evidence.type}:${evidence.value ?? ""}`;
+    const current = byType.get(key);
+
+    if (!current) {
+      byType.set(key, { type: evidence.type, value: evidence.value, occurrences: evidence.occurrences });
+      return;
+    }
+
+    current.occurrences += evidence.occurrences;
+  });
+
+  return Array.from(byType.values())
+    .sort((left, right) => right.occurrences - left.occurrences)
+    .slice(0, 8);
 }
 
 function compareMappings(left: MappingRecord, right: MappingRecord, sortKey: SortKey): number {
   if (sortKey === "occurrenceCount") {
-    return right.occurrenceCount - left.occurrenceCount || compareMappings(left, right, "id");
+    return right.occurrenceCount - left.occurrenceCount || compareMappings(left, right, "rawId");
   }
 
   if (sortKey === "lastSeenAt") {
-    return dateValue(right.lastSeenAt) - dateValue(left.lastSeenAt) || compareMappings(left, right, "id");
+    return dateValue(right.lastSeenAt) - dateValue(left.lastSeenAt) || compareMappings(left, right, "rawId");
   }
 
   const leftValue = sortKey === "name" ? getDisplayName(left) ?? "" : String(left[sortKey] ?? "");
@@ -658,33 +770,38 @@ function calculateMappingUsage(raids: readonly StoredRaid[]): Map<string, Mappin
   const usage = new Map<string, MappingUsageStats>();
 
   raids.forEach((raid) => {
-    incrementUsage(usage, raid.basic.mapId, "maps");
+    incrementUsage(usage, "map", raid.basic.mapId, "maps");
     raid.kills.forEach((kill) => {
-      incrementUsage(usage, kill.weaponId, "kills");
-      incrementUsage(usage, kill.armorId, "kills");
-      incrementUsage(usage, kill.hitBodyPartId, "kills");
+      incrementUsage(usage, "item", kill.weaponId, "kills");
+      incrementUsage(usage, "item", kill.armorId, "kills");
+      incrementUsage(usage, "gameplay_tag", kill.hitBodyPartId, "kills");
     });
     raid.incomingDamage.forEach((event) => {
-      incrementUsage(usage, event.deathCauserId, "incoming");
-      incrementUsage(usage, event.armorId, "incoming");
+      incrementUsage(usage, "item", event.deathCauserId, "incoming");
+      incrementUsage(usage, "item", event.armorId, "incoming");
     });
     if (raid.death) {
-      incrementUsage(usage, raid.death.weaponId, "deaths");
-      incrementUsage(usage, raid.death.deathCauserId ?? raid.death.ammoId, "deaths");
-      incrementUsage(usage, raid.death.armorId, "deaths");
-      incrementUsage(usage, raid.death.hitBodyPartId, "deaths");
+      incrementUsage(usage, "item", raid.death.weaponId, "deaths");
+      incrementUsage(usage, "item", raid.death.deathCauserId ?? raid.death.ammoId, "deaths");
+      incrementUsage(usage, "item", raid.death.armorId, "deaths");
+      incrementUsage(usage, "gameplay_tag", raid.death.hitBodyPartId, "deaths");
     }
   });
 
   return usage;
 }
 
-function incrementUsage(usage: Map<string, MappingUsageStats>, id: string | number | null | undefined, key: keyof MappingUsageStats): void {
+function incrementUsage(
+  usage: Map<string, MappingUsageStats>,
+  namespace: MappingNamespace,
+  id: string | number | null | undefined,
+  key: keyof MappingUsageStats,
+): void {
   if (id === null || id === undefined || id === "" || String(id) === "0") {
     return;
   }
 
-  const idText = String(id);
+  const idText = createMappingKey(namespace, id, namespace === "gameplay_tag") ?? `${namespace}:${String(id)}`;
   const current = usage.get(idText) ?? createEmptyUsage();
   current[key] += 1;
   usage.set(idText, current);
@@ -705,4 +822,8 @@ function formatOptionalDate(value: string | null): string {
 
 function dateValue(value: string | null): number {
   return value ? new Date(value).getTime() : 0;
+}
+
+function isMappingStatus(value: string | null): value is MappingStatus {
+  return value === "unresolved" || value === "typed" || value === "inferred" || value === "confirmed" || value === "unconfirmed" || value === "conflict";
 }

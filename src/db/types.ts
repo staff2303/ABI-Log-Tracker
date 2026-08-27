@@ -1,4 +1,4 @@
-import type { Raid } from "../types/raid";
+import type { GameId, Raid } from "../types/raid";
 import type { MappingDiscoverySummary, MappingRecord } from "./mappingTypes";
 
 export type MatchIdentityType = "room-id" | "fallback";
@@ -43,7 +43,7 @@ export interface StoredRaid extends Raid {
     conflicts?: RaidMergeConflict[];
   };
   startedAt: string;
-  mapId: number | null;
+  mapId: GameId | null;
   mode: string | null;
   zone: string | null;
   result: string;
@@ -58,6 +58,7 @@ export interface ImportedSourceFile {
   lastModified: number | null;
   importedAt: string;
   parserVersion: string;
+  mappingScannerVersion: string | null;
 }
 
 export interface ImportHistory {
@@ -113,4 +114,7 @@ export interface StorageInfo {
   persisted: boolean | null;
   usage: number | null;
   quota: number | null;
+  dbPath?: string | null;
+  dbFolder?: string | null;
+  journalMode?: string | null;
 }

@@ -42,6 +42,7 @@ const emptySnapshot: StreamingDecoderSnapshot = {
   errorMessage: null,
   raids: [],
   debug: null,
+  mappingDiscoveries: [],
 };
 
 function createDecoderWorker(): Worker {
@@ -82,6 +83,7 @@ export function useStreamingDecoder() {
         errorMessage: null,
         raids: [],
         debug: null,
+        mappingDiscoveries: [],
       });
 
       worker.onmessage = (event: MessageEvent<DecoderWorkerResponse>) => {
@@ -94,6 +96,7 @@ export function useStreamingDecoder() {
             errorMessage: null,
             raids: current.raids,
             debug: current.debug,
+            mappingDiscoveries: current.mappingDiscoveries,
           }));
           return;
         }
@@ -105,6 +108,7 @@ export function useStreamingDecoder() {
             errorMessage: null,
             raids: message.raids,
             debug: message.debug,
+            mappingDiscoveries: message.mappingDiscoveries,
           });
           clearWorker(worker);
           return;
@@ -117,6 +121,7 @@ export function useStreamingDecoder() {
             errorMessage: null,
             raids: message.raids,
             debug: message.debug,
+            mappingDiscoveries: message.mappingDiscoveries,
           });
           clearWorker(worker);
           return;
@@ -128,6 +133,7 @@ export function useStreamingDecoder() {
           errorMessage: message.errorMessage,
           raids: [],
           debug: null,
+          mappingDiscoveries: [],
         });
         clearWorker(worker);
       };
@@ -139,6 +145,7 @@ export function useStreamingDecoder() {
           errorMessage: event.message || "Worker failed before it could report decoder progress.",
           raids: [],
           debug: null,
+          mappingDiscoveries: [],
         });
         clearWorker(worker);
       };

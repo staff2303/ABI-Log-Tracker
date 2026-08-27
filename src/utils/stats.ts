@@ -1,4 +1,3 @@
-import { formatMapDisplayName } from "../data/displayNameResolver";
 import type { Raid, RaidResult, SquadType } from "../types/raid";
 import { formatDateInputValue } from "./format";
 
@@ -40,7 +39,7 @@ export const defaultFilters: RaidFilters = {
 export function filterRaids(
   raids: Raid[],
   filters: RaidFilters,
-  resolveMapName: (raid: Raid) => string | null = (raid) => formatMapDisplayName(raid.basic.mapId, raid.basic.map),
+  resolveMapName: (raid: Raid) => string | null = (raid) => raid.basic.map,
 ): Raid[] {
   return raids.filter((raid) => {
     const raidDate = formatDateInputValue(raid.basic.dateTime);

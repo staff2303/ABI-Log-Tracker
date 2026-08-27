@@ -5,11 +5,12 @@ import { createBuiltInMappingRecords } from "./mappingBuiltins";
 import { collectMappingDiscoveriesFromRaids } from "./mappingDiscovery";
 import { createMappingBackupPayload, summarizeMappings, validateMappingBackupPayload } from "./mappingRepository";
 import type { MappingRecord } from "./mappingTypes";
+import { createMappingIdentity, namespaceForCategory, parseRawIdFromCompositeId } from "./mappingIdentity";
 
 describe("mapping management", () => {
   it("creates built-in seed records from generated maps", () => {
     const records = createBuiltInMappingRecords("2026-08-25T00:00:00.000Z");
-    const ak12 = records.find((record) => record.id === "101010023");
+    const ak12 = records.find((record) => record.rawId === "101010023" && record.namespace === "item");
 
     expect(ak12).toMatchObject({
       category: "weapon",
@@ -28,9 +29,9 @@ describe("mapping management", () => {
 
     expect(discoveries).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "999999999", category: "weapon" }),
-        expect.objectContaining({ id: "888888888", category: "equipment", suggestedCategory: "armor" }),
-        expect.objectContaining({ id: "777777777", category: "ammo" }),
+        expect.objectContaining({ rawId: "999999999", namespace: "item", category: "weapon" }),
+        expect.objectContaining({ rawId: "888888888", namespace: "item", category: "equipment", suggestedCategory: "armor" }),
+        expect.objectContaining({ rawId: "777777777", namespace: "item", category: "ammo" }),
       ]),
     );
     expect(JSON.stringify(raid)).toBe(before);
@@ -107,18 +108,30 @@ describe("mapping management", () => {
 });
 
 function createMappingRecord(overrides: Partial<MappingRecord>): MappingRecord {
-  return {
-    id: "999999999",
-    category: "weapon",
-    suggestedCategory: "weapon",
+  const category = overrides.category ?? "weapon";
+  const namespace = overrides.namespace ?? namespaceForCategory(category);
+  const rawId = overrides.rawId ?? parseRawIdFromCompositeId(overrides.id) ?? "999999999";
+  const identity = createMappingIdentity(namespace, rawId, namespace === "gameplay_tag");
+
+  const record: MappingRecord = {
+    id: identity?.id ?? `${namespace}:${rawId}`,
+    namespace,
+    rawId,
+    category,
+    subcategory: null,
+    suggestedCategory: category,
     name: "Test Rifle",
+    displayName: "Test Rifle",
     builtinName: null,
     userName: null,
+    internalName: null,
+    canonicalInternalName: null,
     status: "confirmed",
     source: "user",
     aliases: [],
     rawBlueprint: null,
-    confidence: "high",
+    confidence: "confirmed",
+    confirmationType: "manual",
     occurrenceCount: 0,
     firstSeenAt: null,
     lastSeenAt: null,
@@ -130,6 +143,15 @@ function createMappingRecord(overrides: Partial<MappingRecord>): MappingRecord {
     candidateNames: [],
     evidence: [],
     ...overrides,
+  };
+
+  return {
+    ...record,
+    id: identity?.id ?? `${namespace}:${rawId}`,
+    namespace,
+    rawId,
+    category,
+    suggestedCategory: record.suggestedCategory ?? category,
   };
 }
 

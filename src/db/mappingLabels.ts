@@ -3,6 +3,7 @@ import type { MappingCategory, MappingStatus } from "./mappingTypes";
 export const mappingCategories: MappingCategory[] = [
   "weapon",
   "ammo",
+  "magazine",
   "armor",
   "helmet",
   "rig",
@@ -12,6 +13,8 @@ export const mappingCategories: MappingCategory[] = [
   "throwable",
   "medical",
   "provision",
+  "food",
+  "drink",
   "key",
   "currency",
   "loot",
@@ -24,6 +27,7 @@ export const mappingCategories: MappingCategory[] = [
 export const mappingCategoryLabels: Record<MappingCategory, string> = {
   weapon: "무기",
   ammo: "탄약",
+  magazine: "탄창",
   armor: "방어구",
   helmet: "헬멧",
   rig: "리그",
@@ -33,6 +37,8 @@ export const mappingCategoryLabels: Record<MappingCategory, string> = {
   throwable: "투척물",
   medical: "의료",
   provision: "음식",
+  food: "음식",
+  drink: "음료",
   key: "열쇠",
   currency: "화폐",
   loot: "루팅",
@@ -43,6 +49,9 @@ export const mappingCategoryLabels: Record<MappingCategory, string> = {
 };
 
 export const mappingStatusLabels: Record<MappingStatus, string> = {
+  unresolved: "미해결",
+  typed: "유형확인",
+  inferred: "추론됨",
   confirmed: "확인됨",
   unconfirmed: "미확인",
   conflict: "충돌",

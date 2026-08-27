@@ -107,6 +107,7 @@ function createSourceFile(id: string): ImportedSourceFile {
     lastModified: null,
     importedAt: "2026-08-25T00:00:00.000Z",
     parserVersion: CURRENT_PARSER_VERSION,
+    mappingScannerVersion: null,
   };
 }
 

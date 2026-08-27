@@ -1,5 +1,6 @@
 import type { Raid } from "../types/raid";
 import type { MappingCategory, MappingDiscoveryEntry } from "./mappingTypes";
+import { createMappingIdentity, namespaceForCategory } from "./mappingIdentity";
 
 type IdLike = string | number | null | undefined;
 
@@ -50,18 +51,23 @@ function pushId(
   suggestedCategory: MappingCategory | null = category,
 ): void {
   const normalizedId = normalizeId(id);
+  const cleanedCandidateName = cleanCandidateName(candidateName);
+  const namespace = namespaceForCategory(category);
+  const identity = createMappingIdentity(namespace, normalizedId ?? (String(id).trim() === "0" ? "0" : null), category === "bodyPart");
 
-  if (!normalizedId) {
+  if (!identity) {
     return;
   }
 
   target.push({
-    id: normalizedId,
+    id: identity.id,
+    namespace: identity.namespace,
+    rawId: identity.rawId,
     category,
     suggestedCategory,
-    candidateName: cleanCandidateName(candidateName),
-    confidence: candidateName ? "medium" : "low",
-    evidenceType,
+    candidateName: cleanedCandidateName,
+    confidence: cleanedCandidateName ? "medium" : "low",
+    evidenceType: evidenceType === "battle-result" ? "map_info" : "typed_field",
     autoConfirm: false,
   });
 }

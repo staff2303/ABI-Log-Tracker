@@ -1,20 +1,15 @@
+import { loadDatabaseInfo, storageInfoFromDatabaseInfo } from "./sqliteState";
+import { invokeCommand } from "./tauriClient";
 import type { StorageInfo } from "./types";
 
 export async function getStorageInfo(): Promise<StorageInfo> {
-  const estimate = await navigator.storage?.estimate?.();
-  const persisted = await navigator.storage?.persisted?.();
-
-  return {
-    persisted: persisted ?? null,
-    usage: estimate?.usage ?? null,
-    quota: estimate?.quota ?? null,
-  };
+  return storageInfoFromDatabaseInfo(await loadDatabaseInfo());
 }
 
 export async function requestStoragePersistence(): Promise<boolean | null> {
-  if (!navigator.storage?.persist) {
-    return null;
-  }
+  return true;
+}
 
-  return navigator.storage.persist();
+export async function openDatabaseFolder(): Promise<void> {
+  await invokeCommand("open_database_folder");
 }

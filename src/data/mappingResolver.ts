@@ -1,8 +1,10 @@
-import type { MappingCategory, MappingRecord } from "../db/mappingTypes";
+import { createMappingKey, namespaceForCategory } from "../db/mappingIdentity";
+import type { MappingCategory, MappingNamespace, MappingRecord } from "../db/mappingTypes";
 
 type IdLike = string | number | null | undefined;
 
 interface ResolveOptions {
+  namespace?: MappingNamespace;
   category: MappingCategory;
   unknownLabel: string;
   fallbackName?: string | null;
@@ -10,12 +12,23 @@ interface ResolveOptions {
 }
 
 export interface MappingResolver {
+  resolveEntity: (input: { namespace: MappingNamespace; rawId: IdLike; fallbackName?: string | null; category?: MappingCategory }) => MappingResolveResult | null;
   resolve: (id: IdLike, options: ResolveOptions) => string | null;
   weapon: (id: IdLike, fallbackName?: string | null) => string | null;
   ammo: (id: IdLike, fallbackName?: string | null) => string | null;
   equipment: (id: IdLike, fallbackName?: string | null) => string | null;
   map: (id: IdLike, fallbackName?: string | null) => string | null;
   bodyPart: (id: IdLike, fallbackName?: string | null) => string | null;
+}
+
+export interface MappingResolveResult {
+  rawId: string;
+  namespace: MappingNamespace;
+  displayName: string | null;
+  internalName: string | null;
+  category: MappingCategory;
+  status: MappingRecord["status"] | "unmapped";
+  confidence: MappingRecord["confidence"];
 }
 
 const emptyMappings = new Map<string, MappingRecord>();
@@ -26,6 +39,7 @@ export function createMappingResolver(mappings: readonly MappingRecord[]): Mappi
   const byId = new Map(mappings.map((mapping) => [mapping.id, mapping]));
 
   return {
+    resolveEntity: (input) => resolveMappingEntity(byId, input),
     resolve: (id, options) => resolveMappingName(byId, id, options),
     weapon: (id, fallbackName = null) =>
       resolveMappingName(byId, id, {
@@ -69,7 +83,9 @@ export function resolveMappingName(
   id: IdLike,
   options: ResolveOptions,
 ): string | null {
-  const key = normalizeId(id);
+  const rawId = normalizeId(id);
+  const namespace = options.namespace ?? namespaceForCategory(options.category);
+  const key = rawId ? createMappingKey(namespace, rawId, namespace === "gameplay_tag") : null;
 
   if (!key) {
     return cleanFallbackName(options.fallbackName, options.rawPrefixes ?? []);
@@ -91,13 +107,39 @@ export function resolveMappingName(
   return options.unknownLabel;
 }
 
+export function resolveMappingEntity(
+  mappingsById: ReadonlyMap<string, MappingRecord> = emptyMappings,
+  input: { namespace: MappingNamespace; rawId: IdLike; fallbackName?: string | null; category?: MappingCategory },
+): MappingResolveResult | null {
+  const rawId = normalizeId(input.rawId);
+  const key = rawId ? createMappingKey(input.namespace, rawId, input.namespace === "gameplay_tag") : null;
+
+  if (!rawId || !key) {
+    return null;
+  }
+
+  const record = mappingsById.get(key);
+  const fallback = cleanFallbackName(input.fallbackName, []);
+  const displayName = record ? getConfirmedDisplayName(record) : fallback;
+
+  return {
+    rawId,
+    namespace: input.namespace,
+    displayName,
+    internalName: record?.internalName ?? record?.rawBlueprint ?? null,
+    category: record?.category ?? input.category ?? "other",
+    status: record?.status ?? "unmapped",
+    confidence: record?.confidence ?? null,
+  };
+}
+
 export function getConfirmedDisplayName(record: MappingRecord): string | null {
   if (record.userEdited && record.userName) {
     return record.userName;
   }
 
   if (record.status === "confirmed") {
-    return record.name ?? record.builtinName ?? null;
+    return record.displayName ?? record.name ?? record.builtinName ?? null;
   }
 
   return null;

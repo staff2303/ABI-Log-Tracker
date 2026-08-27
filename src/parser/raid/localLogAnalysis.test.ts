@@ -1,4 +1,4 @@
-import { createReadStream } from "node:fs";
+import { createReadStream, writeFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { describe, expect, it } from "vitest";
 import { ammoMap } from "../../data/generated/ammoMap";
@@ -6,6 +6,7 @@ import { equipmentMap } from "../../data/generated/equipmentMap";
 import { itemNameMap } from "../../data/generated/itemNameResolver";
 import { formatDateTime } from "../../utils/format";
 import { decodePayloadForValidation, decodePayloadToBytes } from "../decoder/abiLogCodec";
+import { MappingDiscoveryScanner } from "../mapping/MappingDiscoveryScanner";
 import { RaidParser } from "./RaidParser";
 
 type ByteBuffer = Uint8Array<ArrayBufferLike>;
@@ -28,6 +29,14 @@ interface LocalLogAnalysis {
   raids: ReturnType<RaidParser["finalize"]>["raids"];
   debug: ReturnType<RaidParser["finalize"]>["debug"];
   patternSamples: Record<string, string[]>;
+  mappingDiscovery: {
+    enabled: boolean;
+    discoveredIds: number;
+    candidateNames: number;
+    blueprintCandidates: number;
+    scannedRecords: number;
+    scannerMs: number | null;
+  };
 }
 
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
@@ -124,9 +133,34 @@ function collectPatternSamples(decodedLine: string, counters: LocalLogAnalysis):
   }
 }
 
-function consumeDecoded(decodedLine: string, parser: RaidParser, counters: LocalLogAnalysis, sourceRecordIndex: number): void {
+function consumeDecoded(
+  decodedLine: string,
+  parser: RaidParser,
+  counters: LocalLogAnalysis,
+  sourceRecordIndex: number,
+  scanner: MappingDiscoveryScanner | null,
+): void {
   collectPatternSamples(decodedLine, counters);
   parser.consume(decodedLine, { sourceRecordIndex });
+
+  if (!scanner) {
+    return;
+  }
+
+  if (!scanner.shouldConsume(decodedLine)) {
+    return;
+  }
+
+  counters.mappingDiscovery.scannedRecords += 1;
+
+  if (process.env.ABI_LOG_MAPPING_TIMING === "1") {
+    const startedAt = performance.now();
+    scanner.consumeScannable(decodedLine, sourceRecordIndex);
+    counters.mappingDiscovery.scannerMs = (counters.mappingDiscovery.scannerMs ?? 0) + performance.now() - startedAt;
+    return;
+  }
+
+  scanner.consumeScannable(decodedLine, sourceRecordIndex);
 }
 
 function collectMappingCoverage(raids: LocalLogAnalysis["raids"]): MappingCoverage {
@@ -168,13 +202,23 @@ function collectUniqueUnmappedIds(
   ).sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
 }
 
-function processDecodedTextRecord(decodedLine: string, parser: RaidParser, counters: LocalLogAnalysis): void {
+function processDecodedTextRecord(
+  decodedLine: string,
+  parser: RaidParser,
+  counters: LocalLogAnalysis,
+  scanner: MappingDiscoveryScanner | null,
+): void {
   counters.totalRecords += 1;
   counters.decodedBytes += decodedLine.length;
-  consumeDecoded(decodedLine, parser, counters, counters.totalRecords);
+  consumeDecoded(decodedLine, parser, counters, counters.totalRecords, scanner);
 }
 
-function processRecord(line: ByteBuffer, parser: RaidParser, counters: LocalLogAnalysis): void {
+function processRecord(
+  line: ByteBuffer,
+  parser: RaidParser,
+  counters: LocalLogAnalysis,
+  scanner: MappingDiscoveryScanner | null,
+): void {
   counters.totalRecords += 1;
   const sourceRecordIndex = counters.totalRecords;
 
@@ -187,14 +231,26 @@ function processRecord(line: ByteBuffer, parser: RaidParser, counters: LocalLogA
     if (line[1] === 0x03) {
       counters.mode03Records += 1;
       counters.decodedBytes += decodePayloadForValidation(line, 2, line.length - 2, 3).decodedBytes;
-      consumeDecoded(textDecoder.decode(decodePayloadToBytes(line, 2, line.length - 2, 3)), parser, counters, sourceRecordIndex);
+      consumeDecoded(
+        textDecoder.decode(decodePayloadToBytes(line, 2, line.length - 2, 3)),
+        parser,
+        counters,
+        sourceRecordIndex,
+        scanner,
+      );
       return;
     }
 
     if (line[1] === 0x04) {
       counters.mode04Records += 1;
       counters.decodedBytes += decodePayloadForValidation(line, 2, line.length - 2, 4).decodedBytes;
-      consumeDecoded(textDecoder.decode(decodePayloadToBytes(line, 2, line.length - 2, 4)), parser, counters, sourceRecordIndex);
+      consumeDecoded(
+        textDecoder.decode(decodePayloadToBytes(line, 2, line.length - 2, 4)),
+        parser,
+        counters,
+        sourceRecordIndex,
+        scanner,
+      );
       return;
     }
   }
@@ -205,8 +261,9 @@ function processRecord(line: ByteBuffer, parser: RaidParser, counters: LocalLogA
   }
 }
 
-async function analyzeLog(path: string): Promise<LocalLogAnalysis> {
+async function analyzeLog(path: string, enableMappingScanner = false): Promise<LocalLogAnalysis> {
   const parser = new RaidParser();
+  const scanner = enableMappingScanner ? new MappingDiscoveryScanner() : null;
   const counters: LocalLogAnalysis = {
     sourceMode: "binary",
     totalRecords: 0,
@@ -218,6 +275,14 @@ async function analyzeLog(path: string): Promise<LocalLogAnalysis> {
     raids: [],
     debug: parser.getDebugInfo(),
     patternSamples: {},
+    mappingDiscovery: {
+      enabled: enableMappingScanner,
+      discoveredIds: 0,
+      candidateNames: 0,
+      blueprintCandidates: 0,
+      scannedRecords: 0,
+      scannerMs: null,
+    },
   };
   let carry: ByteBuffer = new Uint8Array(0);
 
@@ -230,7 +295,7 @@ async function analyzeLog(path: string): Promise<LocalLogAnalysis> {
         continue;
       }
 
-      processRecord(trimLineEnding(buffer, lineStart, index), parser, counters);
+      processRecord(trimLineEnding(buffer, lineStart, index), parser, counters, scanner);
       lineStart = index + 1;
     }
 
@@ -238,12 +303,22 @@ async function analyzeLog(path: string): Promise<LocalLogAnalysis> {
   }
 
   if (carry.length > 0) {
-    processRecord(trimLineEnding(carry, 0, carry.length), parser, counters);
+    processRecord(trimLineEnding(carry, 0, carry.length), parser, counters, scanner);
   }
 
   const result = parser.finalize(counters.totalRecords);
+  const discoveries = scanner?.finalize() ?? [];
   counters.raids = result.raids;
   counters.debug = result.debug;
+  counters.mappingDiscovery.discoveredIds = discoveries.length;
+  counters.mappingDiscovery.candidateNames = discoveries.reduce(
+    (sum, entry) => sum + (entry.candidates ?? []).filter((candidate) => candidate.source !== "blueprint").length,
+    0,
+  );
+  counters.mappingDiscovery.blueprintCandidates = discoveries.reduce(
+    (sum, entry) => sum + (entry.candidates ?? []).filter((candidate) => candidate.source === "blueprint").length,
+    0,
+  );
 
   return counters;
 }
@@ -252,8 +327,9 @@ function isDecodedRecordStart(line: string): boolean {
   return /^\[\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2}:\d{3}\]/.test(line);
 }
 
-async function analyzeDecodedTextLog(path: string): Promise<LocalLogAnalysis> {
+async function analyzeDecodedTextLog(path: string, enableMappingScanner = false): Promise<LocalLogAnalysis> {
   const parser = new RaidParser();
+  const scanner = enableMappingScanner ? new MappingDiscoveryScanner() : null;
   const counters: LocalLogAnalysis = {
     sourceMode: "decodedText",
     totalRecords: 0,
@@ -265,6 +341,14 @@ async function analyzeDecodedTextLog(path: string): Promise<LocalLogAnalysis> {
     raids: [],
     debug: parser.getDebugInfo(),
     patternSamples: {},
+    mappingDiscovery: {
+      enabled: enableMappingScanner,
+      discoveredIds: 0,
+      candidateNames: 0,
+      blueprintCandidates: 0,
+      scannedRecords: 0,
+      scannerMs: null,
+    },
   };
   let pendingRecord: string | null = null;
   const lineReader = createInterface({
@@ -275,7 +359,7 @@ async function analyzeDecodedTextLog(path: string): Promise<LocalLogAnalysis> {
   for await (const line of lineReader) {
     if (isDecodedRecordStart(line)) {
       if (pendingRecord !== null) {
-        processDecodedTextRecord(pendingRecord, parser, counters);
+        processDecodedTextRecord(pendingRecord, parser, counters, scanner);
       }
 
       pendingRecord = line;
@@ -286,28 +370,52 @@ async function analyzeDecodedTextLog(path: string): Promise<LocalLogAnalysis> {
   }
 
   if (pendingRecord !== null) {
-    processDecodedTextRecord(pendingRecord, parser, counters);
+    processDecodedTextRecord(pendingRecord, parser, counters, scanner);
   }
 
   const result = parser.finalize(counters.totalRecords);
+  const discoveries = scanner?.finalize() ?? [];
   counters.raids = result.raids;
   counters.debug = result.debug;
+  counters.mappingDiscovery.discoveredIds = discoveries.length;
+  counters.mappingDiscovery.candidateNames = discoveries.reduce(
+    (sum, entry) => sum + (entry.candidates ?? []).filter((candidate) => candidate.source !== "blueprint").length,
+    0,
+  );
+  counters.mappingDiscovery.blueprintCandidates = discoveries.reduce(
+    (sum, entry) => sum + (entry.candidates ?? []).filter((candidate) => candidate.source === "blueprint").length,
+    0,
+  );
 
   return counters;
 }
 
 async function analyzeLocalLog(): Promise<LocalLogAnalysis> {
+  const enableMappingScanner = process.env.ABI_LOG_MAPPING_SCANNER === "1";
+
   if (process.env.ABI_DECODED_LOG_PATH) {
-    return analyzeDecodedTextLog(process.env.ABI_DECODED_LOG_PATH);
+    return analyzeDecodedTextLog(process.env.ABI_DECODED_LOG_PATH, enableMappingScanner);
   }
 
-  return analyzeLog(process.env.ABI_LOG_PATH!);
+  return analyzeLog(process.env.ABI_LOG_PATH!, enableMappingScanner);
 }
 
 describe.skipIf(!process.env.ABI_LOG_PATH && !process.env.ABI_DECODED_LOG_PATH)("local ABInfinite.log analysis", () => {
   it("streams and parses the real local log", async () => {
     const result = await analyzeLocalLog();
     const mappingCoverage = collectMappingCoverage(result.raids);
+    const diagnosticPayload = {
+      sourceMode: result.sourceMode,
+      totalRecords: result.totalRecords,
+      unknownRecords: result.unknownRecords,
+      raidCount: result.raids.length,
+      mappingDiscovery: result.mappingDiscovery,
+      parserWarnings: result.debug.warnings.length,
+    };
+
+    if (process.env.ABI_LOG_ANALYSIS_OUTPUT_PATH) {
+      writeFileSync(process.env.ABI_LOG_ANALYSIS_OUTPUT_PATH, JSON.stringify(diagnosticPayload, null, 2), "utf8");
+    }
 
     if (process.env.ABI_LOG_PRINT_MAPPING_ONLY === "1") {
       console.log(
@@ -325,6 +433,7 @@ describe.skipIf(!process.env.ABI_LOG_PATH && !process.env.ABI_DECODED_LOG_PATH)(
               parserWarnings: result.debug.warnings.length,
             },
             mappingCoverage,
+            mappingDiscovery: result.mappingDiscovery,
             warnings: result.debug.warnings,
           },
           null,
@@ -495,6 +604,7 @@ describe.skipIf(!process.env.ABI_LOG_PATH && !process.env.ABI_DECODED_LOG_PATH)(
               })),
           },
           mappingCoverage,
+          mappingDiscovery: result.mappingDiscovery,
           raidDebug: result.debug.raidSummaries,
           warnings: result.debug.warnings,
           patternSamples: result.patternSamples,

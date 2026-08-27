@@ -1,16 +1,9 @@
 import type { Raid } from "../types/raid";
-import { CURRENT_PARSER_VERSION } from "./constants";
-import { recordMappingDiscoveriesFromRaids, mergeImportedMappings } from "./mappingRepository";
+import { CURRENT_MAPPING_SCANNER_VERSION, CURRENT_PARSER_VERSION } from "./constants";
+import { recordMappingDiscoveries, recordMappingDiscoveriesFromRaids, mergeImportedMappings } from "./mappingRepository";
 import { createStoredRaid, mergeStoredRaid } from "./merge";
-import {
-  clearStores,
-  countStore,
-  getAllFromStore,
-  getImportByHash,
-  openTrackerDatabase,
-  requestToPromise,
-  runImportTransaction,
-} from "./database";
+import { collectMappingDiscoveriesFromRaids } from "./mappingDiscovery";
+import type { MappingDiscoveryEntry } from "./mappingTypes";
 import type {
   BackupImportSummary,
   ImportedSourceFile,
@@ -20,32 +13,30 @@ import type {
   RaidMergeConflict,
   StoredRaid,
 } from "./types";
+import { loadTrackerState } from "./sqliteState";
+import { invokeCommand } from "./tauriClient";
 
 export async function getAllRaids(): Promise<StoredRaid[]> {
-  const raids = await getAllFromStore<StoredRaid>("raids");
-  return raids.sort((left, right) => new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime());
+  const state = await loadTrackerState();
+  return state.raids.sort((left, right) => new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime());
 }
 
 export async function getRaidCount(): Promise<number> {
-  return countStore("raids");
+  const state = await loadTrackerState();
+  return state.dbInfo.raidCount;
 }
 
 export async function deleteRaid(matchKey: string): Promise<void> {
-  const db = await openTrackerDatabase();
-
-  await new Promise<void>((resolve, reject) => {
-    const request = db.transaction("raids", "readwrite").objectStore("raids").delete(matchKey);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error ?? new Error("Failed to delete raid."));
-  });
+  await invokeCommand("delete_raid_by_match_key", { matchKey });
 }
 
-export async function clearTrackerDatabase(): Promise<void> {
-  await clearStores(["raids", "imports", "importHistory", "settings", "mappings"]);
+export async function clearTrackerDatabase(scope: "records" | "all" = "records"): Promise<void> {
+  await invokeCommand("clear_tracker_database", { scope });
 }
 
 export async function findImportedSourceFileByHash(fileHash: string): Promise<ImportedSourceFile | null> {
-  return getImportByHash(fileHash);
+  const state = await loadTrackerState();
+  return state.sourceFiles.find((sourceFile) => sourceFile.fileHash === fileHash) ?? null;
 }
 
 export async function getDuplicateImportState(fileHash: string): Promise<{
@@ -54,7 +45,8 @@ export async function getDuplicateImportState(fileHash: string): Promise<{
   historyCount: number;
   raidCount: number;
 }> {
-  const sourceFile = await getImportByHash(fileHash);
+  const state = await loadTrackerState();
+  const sourceFile = state.sourceFiles.find((item) => item.fileHash === fileHash) ?? null;
 
   if (!sourceFile) {
     return {
@@ -65,12 +57,8 @@ export async function getDuplicateImportState(fileHash: string): Promise<{
     };
   }
 
-  const [histories, raids] = await Promise.all([
-    getAllFromStore<ImportHistory>("importHistory"),
-    getAllFromStore<StoredRaid>("raids"),
-  ]);
-  const historyCount = histories.filter((history) => history.sourceFileId === sourceFile.id).length;
-  const raidCount = raids.filter((raid) => raid.sourceFileIds.includes(sourceFile.id)).length;
+  const historyCount = state.importHistory.filter((history) => history.sourceFileId === sourceFile.id).length;
+  const raidCount = state.raids.filter((raid) => raid.sourceFileIds.includes(sourceFile.id)).length;
 
   return {
     sourceFile,
@@ -81,29 +69,30 @@ export async function getDuplicateImportState(fileHash: string): Promise<{
 }
 
 export async function getRecentImports(limit = 10): Promise<ImportHistory[]> {
-  const imports = await getAllFromStore<ImportHistory>("importHistory");
-
-  return imports
+  const state = await loadTrackerState();
+  return state.importHistory
     .sort((left, right) => new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime())
     .slice(0, limit);
 }
 
 export async function getAllImportedSourceFiles(): Promise<ImportedSourceFile[]> {
-  return getAllFromStore<ImportedSourceFile>("imports");
+  return (await loadTrackerState()).sourceFiles;
 }
 
 export async function getAllImportHistory(): Promise<ImportHistory[]> {
-  return getAllFromStore<ImportHistory>("importHistory");
+  return (await loadTrackerState()).importHistory;
 }
 
 export async function commitParsedImport({
   raids,
   fileHash,
   file,
+  mappingDiscoveries,
 }: {
   raids: Raid[];
   fileHash: string;
   file: File;
+  mappingDiscoveries?: MappingDiscoveryEntry[];
 }): Promise<ImportCommitSummary> {
   const now = new Date().toISOString();
   const sourceFile: ImportedSourceFile = {
@@ -114,6 +103,7 @@ export async function commitParsedImport({
     lastModified: file.lastModified || null,
     importedAt: now,
     parserVersion: CURRENT_PARSER_VERSION,
+    mappingScannerVersion: CURRENT_MAPPING_SCANNER_VERSION,
   };
   const history: ImportHistory = {
     id: createImportHistoryId(sourceFile.id, now),
@@ -134,48 +124,40 @@ export async function commitParsedImport({
   const conflicts: RaidMergeConflict[] = [];
 
   try {
-    const result = await runImportTransaction(async ({ raids: raidStore, imports, importHistory }) => {
-      await requestToPromise(imports.put(sourceFile));
-      await requestToPromise(importHistory.put(history));
+    const existingRaids = new Map((await getAllRaids()).map((raid) => [raid.matchKey, raid]));
+    const raidsToPersist: StoredRaid[] = [];
 
-      for (const raid of raids) {
-        try {
-          const incoming = createStoredRaid(raid, sourceFile.id, now);
-          const existing = ((await requestToPromise(raidStore.get(incoming.matchKey))) as StoredRaid | undefined) ?? null;
-          const decision = mergeStoredRaid(existing, incoming, sourceFile, now);
+    for (const raid of raids) {
+      try {
+        const incoming = createStoredRaid(raid, sourceFile.id, now);
+        const existing = existingRaids.get(incoming.matchKey) ?? null;
+        const decision = mergeStoredRaid(existing, incoming, sourceFile, now);
 
-          incrementHistory(history, decision.action);
-          conflicts.push(...decision.conflicts);
-          await requestToPromise(raidStore.put(decision.raid));
-        } catch {
-          history.failedRaids += 1;
-        }
+        incrementHistory(history, decision.action);
+        conflicts.push(...decision.conflicts);
+        raidsToPersist.push(decision.raid);
+        existingRaids.set(decision.raid.matchKey, decision.raid);
+      } catch {
+        history.failedRaids += 1;
       }
+    }
 
-      history.status = history.failedRaids > 0 ? "failed" : "completed";
-      history.completedAt = new Date().toISOString();
-      await requestToPromise(importHistory.put(history));
-      const totalStoredRaids = await requestToPromise(raidStore.count());
-
-      return {
-        sourceFile,
-        history: { ...history },
-        totalStoredRaids,
-        conflicts,
-        mappingDiscovery: {
-          newIds: 0,
-          rediscoveredIds: 0,
-          autoConfirmed: 0,
-          unconfirmed: 0,
-          conflicts: 0,
-          processedOccurrences: 0,
-        },
-      };
-    });
+    history.status = history.failedRaids > 0 ? "failed" : "completed";
+    history.completedAt = new Date().toISOString();
+    await writeImportPayload(sourceFile, history, raidsToPersist);
 
     return {
-      ...result,
-      mappingDiscovery: await recordMappingDiscoveriesFromRaids(raids, sourceFile.id),
+      sourceFile,
+      history: { ...history },
+      totalStoredRaids: existingRaids.size,
+      conflicts,
+      mappingDiscovery: await recordMappingDiscoveries(
+        mappingDiscoveries && mappingDiscoveries.length > 0
+          ? mappingDiscoveries
+          : collectMappingDiscoveriesFromRaids(raids),
+        sourceFile.id,
+        mappingDiscoveries && mappingDiscoveries.length > 0 ? CURRENT_MAPPING_SCANNER_VERSION : null,
+      ),
     };
   } catch (error) {
     const failedHistory: ImportHistory = {
@@ -204,6 +186,23 @@ export async function mergeStoredRaidsFromBackup(
     lastModified: null,
     importedAt: now,
     parserVersion: CURRENT_PARSER_VERSION,
+    mappingScannerVersion: null,
+  };
+  const backupHistory: ImportHistory = {
+    id: createImportHistoryId(fallbackSourceFile.id, now),
+    sourceFileId: fallbackSourceFile.id,
+    filename: fallbackSourceFile.filename,
+    startedAt: now,
+    completedAt: now,
+    parserVersion: CURRENT_PARSER_VERSION,
+    discoveredRaids: raids.length,
+    insertedRaids: 0,
+    sameRaids: 0,
+    updatedRaids: 0,
+    keptExistingRaids: 0,
+    failedRaids: 0,
+    status: "completed",
+    errorMessage: null,
   };
   const summary: BackupImportSummary = {
     discoveredRaids: raids.length,
@@ -217,30 +216,47 @@ export async function mergeStoredRaidsFromBackup(
     importedMappings: 0,
   };
 
-  return runImportTransaction(async ({ raids: raidStore, imports: importStore, importHistory: historyStore }) => {
-    for (const sourceFile of imports) {
-      await requestToPromise(importStore.put(sourceFile));
+  for (const sourceFile of imports) {
+    const matchingHistory =
+      importHistory.find((history) => history.sourceFileId === sourceFile.id) ??
+      createSyntheticImportHistory(sourceFile, now);
+    await writeImportPayload(sourceFile, matchingHistory, []);
+  }
+
+  const knownSourceIds = new Set([...imports.map((sourceFile) => sourceFile.id), fallbackSourceFile.id]);
+  const existingRaids = new Map((await getAllRaids()).map((raid) => [raid.matchKey, raid]));
+  const raidsToPersist: StoredRaid[] = [];
+
+  for (const raid of raids) {
+    try {
+      const sourceFile =
+        imports.find((item) => raid.sourceFileIds.includes(item.id)) ??
+        fallbackSourceFile;
+      const existing = existingRaids.get(raid.matchKey) ?? null;
+      const normalizedRaid = {
+        ...raid,
+        sourceFileIds: [...new Set([...raid.sourceFileIds.filter((id) => knownSourceIds.has(id)), sourceFile.id])],
+      };
+      const decision = mergeStoredRaid(existing, normalizedRaid, sourceFile, now);
+
+      incrementSummary(summary, decision.action);
+      raidsToPersist.push(decision.raid);
+      existingRaids.set(decision.raid.matchKey, decision.raid);
+    } catch {
+      summary.failedRaids += 1;
     }
+  }
 
-    for (const history of importHistory) {
-      await requestToPromise(historyStore.put(history));
-    }
+  backupHistory.insertedRaids = summary.insertedRaids;
+  backupHistory.sameRaids = summary.sameRaids;
+  backupHistory.updatedRaids = summary.updatedRaids;
+  backupHistory.keptExistingRaids = summary.keptExistingRaids;
+  backupHistory.failedRaids = summary.failedRaids;
+  backupHistory.status = summary.failedRaids > 0 ? "failed" : "completed";
 
-    for (const raid of raids) {
-      try {
-        const existing = ((await requestToPromise(raidStore.get(raid.matchKey))) as StoredRaid | undefined) ?? null;
-        const decision = mergeStoredRaid(existing, raid, imports[0] ?? fallbackSourceFile, now);
-
-        incrementSummary(summary, decision.action);
-        await requestToPromise(raidStore.put(decision.raid));
-      } catch {
-        summary.failedRaids += 1;
-      }
-    }
-
-    summary.totalStoredRaids = await requestToPromise(raidStore.count());
-    return { ...summary };
-  });
+  await writeImportPayload(fallbackSourceFile, backupHistory, raidsToPersist);
+  summary.totalStoredRaids = existingRaids.size;
+  return { ...summary };
 }
 
 export async function mergeStoredRaidsAndMappingsFromBackup(
@@ -257,6 +273,14 @@ export async function mergeStoredRaidsAndMappingsFromBackup(
     ...summary,
     importedMappings: mappingSummary.inserted + mappingSummary.updated,
   };
+}
+
+async function writeImportPayload(sourceFile: ImportedSourceFile, history: ImportHistory, raids: StoredRaid[]): Promise<void> {
+  await invokeCommand("commit_import_payload", {
+    sourceFile,
+    history,
+    raids,
+  });
 }
 
 function incrementHistory(history: ImportHistory, action: RaidMergeAction): void {
@@ -284,10 +308,26 @@ function incrementSummary(summary: BackupImportSummary, action: RaidMergeAction)
 }
 
 async function writeFailedImportHistory(sourceFile: ImportedSourceFile, history: ImportHistory): Promise<void> {
-  await runImportTransaction(async ({ imports, importHistory }) => {
-    await requestToPromise(imports.put(sourceFile));
-    await requestToPromise(importHistory.put(history));
-  });
+  await writeImportPayload(sourceFile, history, []);
+}
+
+function createSyntheticImportHistory(sourceFile: ImportedSourceFile, now: string): ImportHistory {
+  return {
+    id: createImportHistoryId(sourceFile.id, now),
+    sourceFileId: sourceFile.id,
+    filename: sourceFile.filename,
+    startedAt: sourceFile.importedAt || now,
+    completedAt: sourceFile.importedAt || now,
+    parserVersion: sourceFile.parserVersion,
+    discoveredRaids: 0,
+    insertedRaids: 0,
+    sameRaids: 0,
+    updatedRaids: 0,
+    keptExistingRaids: 0,
+    failedRaids: 0,
+    status: "completed",
+    errorMessage: null,
+  };
 }
 
 function createSourceFileId(fileHash: string): string {

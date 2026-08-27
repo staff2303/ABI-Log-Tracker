@@ -1,5 +1,6 @@
 import { Sha256 } from "../db/fileHash";
 import { decodePayloadForValidation, decodePayloadToBytes } from "../parser/decoder/abiLogCodec";
+import { MappingDiscoveryScanner } from "../parser/mapping/MappingDiscoveryScanner";
 import { RaidParser } from "../parser/raid/RaidParser";
 import type { DecoderWorkerRequest, DecoderWorkerResponse, StreamingDecoderStats } from "../types/streamDecoder";
 
@@ -76,7 +77,25 @@ function trimLineEnding(buffer: ByteBuffer, start: number, end: number): ByteBuf
   return buffer.subarray(start, end);
 }
 
-function processRecordLine(line: ByteBuffer, stats: StreamingDecoderStats, parser: RaidParser): void {
+function processDecodedRecord(
+  decodedLine: string,
+  sourceRecordIndex: number,
+  parser: RaidParser,
+  mappingScanner: MappingDiscoveryScanner,
+): void {
+  parser.consume(decodedLine, { sourceRecordIndex });
+
+  if (mappingScanner.shouldConsume(decodedLine)) {
+    mappingScanner.consumeScannable(decodedLine, sourceRecordIndex);
+  }
+}
+
+function processRecordLine(
+  line: ByteBuffer,
+  stats: StreamingDecoderStats,
+  parser: RaidParser,
+  mappingScanner: MappingDiscoveryScanner,
+): void {
   stats.totalRecords += 1;
   const sourceRecordIndex = stats.totalRecords;
 
@@ -93,7 +112,7 @@ function processRecordLine(line: ByteBuffer, stats: StreamingDecoderStats, parse
       const result = decodePayloadForValidation(line, 2, line.length - 2, 3);
       stats.decodedBytes += result.decodedBytes;
       const decodedLine = decodedTextDecoder.decode(decodePayloadToBytes(line, 2, line.length - 2, 3));
-      parser.consume(decodedLine, { sourceRecordIndex });
+      processDecodedRecord(decodedLine, sourceRecordIndex, parser, mappingScanner);
       return;
     }
 
@@ -102,7 +121,7 @@ function processRecordLine(line: ByteBuffer, stats: StreamingDecoderStats, parse
       const result = decodePayloadForValidation(line, 2, line.length - 2, 4);
       stats.decodedBytes += result.decodedBytes;
       const decodedLine = decodedTextDecoder.decode(decodePayloadToBytes(line, 2, line.length - 2, 4));
-      parser.consume(decodedLine, { sourceRecordIndex });
+      processDecodedRecord(decodedLine, sourceRecordIndex, parser, mappingScanner);
       return;
     }
 
@@ -117,7 +136,12 @@ function processRecordLine(line: ByteBuffer, stats: StreamingDecoderStats, parse
   }
 }
 
-function processCompleteLines(buffer: ByteBuffer, stats: StreamingDecoderStats, parser: RaidParser): ByteBuffer {
+function processCompleteLines(
+  buffer: ByteBuffer,
+  stats: StreamingDecoderStats,
+  parser: RaidParser,
+  mappingScanner: MappingDiscoveryScanner,
+): ByteBuffer {
   let lineStart = 0;
 
   for (let index = 0; index < buffer.length; index += 1) {
@@ -126,7 +150,7 @@ function processCompleteLines(buffer: ByteBuffer, stats: StreamingDecoderStats, 
     }
 
     const line = trimLineEnding(buffer, lineStart, index);
-    processRecordLine(line, stats, parser);
+    processRecordLine(line, stats, parser, mappingScanner);
     lineStart = index + 1;
   }
 
@@ -141,6 +165,7 @@ async function decodeFile(file: File): Promise<void> {
   const stats = createInitialStats(file);
   currentStats = stats;
   const parser = new RaidParser();
+  const mappingScanner = new MappingDiscoveryScanner();
   const hasher = new Sha256();
   let carry: ByteBuffer = new Uint8Array(0);
 
@@ -161,20 +186,26 @@ async function decodeFile(file: File): Promise<void> {
 
       stats.processedBytes += value.byteLength;
       hasher.update(value);
-      carry = processCompleteLines(concatCarry(carry, value), stats, parser);
+      carry = processCompleteLines(concatCarry(carry, value), stats, parser, mappingScanner);
       maybePostProgress(stats);
     }
 
     if (cancelRequested) {
       refreshRuntimeStats(stats);
       const result = parser.finalize(stats.totalRecords);
-      postMessage({ type: "cancelled", stats: { ...stats }, raids: result.raids, debug: result.debug });
+      postMessage({
+        type: "cancelled",
+        stats: { ...stats },
+        raids: result.raids,
+        debug: result.debug,
+        mappingDiscoveries: mappingScanner.finalize(),
+      });
       return;
     }
 
     if (carry.length > 0) {
       const finalLine = trimLineEnding(carry, 0, carry.length);
-      processRecordLine(finalLine, stats, parser);
+      processRecordLine(finalLine, stats, parser, mappingScanner);
       carry = new Uint8Array(0);
     }
 
@@ -182,12 +213,24 @@ async function decodeFile(file: File): Promise<void> {
     stats.progress = 100;
     stats.fileHash = hasher.digestHex();
     const result = parser.finalize(stats.totalRecords);
-    postMessage({ type: "complete", stats: { ...stats }, raids: result.raids, debug: result.debug });
+    postMessage({
+      type: "complete",
+      stats: { ...stats },
+      raids: result.raids,
+      debug: result.debug,
+      mappingDiscoveries: mappingScanner.finalize(),
+    });
   } catch (error) {
     if (cancelRequested) {
       refreshRuntimeStats(stats);
       const result = parser.finalize(stats.totalRecords);
-      postMessage({ type: "cancelled", stats: { ...stats }, raids: result.raids, debug: result.debug });
+      postMessage({
+        type: "cancelled",
+        stats: { ...stats },
+        raids: result.raids,
+        debug: result.debug,
+        mappingDiscoveries: mappingScanner.finalize(),
+      });
       return;
     }
 

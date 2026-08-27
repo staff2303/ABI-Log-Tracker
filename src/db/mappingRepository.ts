@@ -1,21 +1,24 @@
-import { createBuiltInMappingRecords } from "./mappingBuiltins";
 import { collectMappingDiscoveriesFromRaids } from "./mappingDiscovery";
-import {
-  getAllFromStore,
-  getSetting,
-  putSetting,
-  requestToPromise,
-  runMappingTransaction,
-} from "./database";
+import { isIgnoredMappingBlueprint } from "./mappingCandidateFilters";
+import { createMappingIdentity, createMappingKey, identityFromMappingInput, namespaceForCategory } from "./mappingIdentity";
+import { applyPatternInference } from "./mappingPatternLearner";
+import { loadTrackerState } from "./sqliteState";
+import { invokeCommand } from "./tauriClient";
+import { CURRENT_MAPPING_SCANNER_VERSION } from "./constants";
 import type { Raid } from "../types/raid";
 import type {
   MappingBackupPayload,
   MappingCandidateName,
+  MappingCandidateSource,
   MappingCategory,
+  MappingConfidence,
+  MappingDiscoveryCandidate,
   MappingDiscoveryEntry,
   MappingDiscoverySummary,
   MappingEvidence,
+  MappingEvidenceType,
   MappingImportSummary,
+  MappingNamespace,
   MappingRecord,
   MappingSource,
   MappingStatus,
@@ -23,7 +26,9 @@ import type {
 } from "./mappingTypes";
 
 export interface SaveMappingInput {
-  id: string;
+  id?: string;
+  namespace: MappingNamespace;
+  rawId: string;
   category: MappingCategory;
   name: string;
   status: MappingStatus;
@@ -32,62 +37,29 @@ export interface SaveMappingInput {
 }
 
 export async function getAllMappings(): Promise<MappingRecord[]> {
-  const mappings = await getAllFromStore<MappingRecord>("mappings");
-  return mappings.sort((left, right) => left.id.localeCompare(right.id, undefined, { numeric: true }));
+  const state = await loadTrackerState();
+  return state.mappings.sort(
+    (left, right) =>
+      left.namespace.localeCompare(right.namespace) ||
+      left.rawId.localeCompare(right.rawId, undefined, { numeric: true }) ||
+      left.category.localeCompare(right.category),
+  );
 }
 
 export async function ensureBuiltInMappingsSeeded(): Promise<{ inserted: number; updated: number; totalBuiltIn: number }> {
-  const builtIns = createBuiltInMappingRecords();
-  let inserted = 0;
-  let updated = 0;
-
-  await runMappingTransaction(async (store) => {
-    for (const builtIn of builtIns) {
-      const existing = ((await requestToPromise(store.get(builtIn.id))) as MappingRecord | undefined) ?? null;
-
-      if (!existing) {
-        inserted += 1;
-        await requestToPromise(store.put(builtIn));
-        continue;
-      }
-
-      const next = mergeBuiltInMapping(existing, builtIn);
-
-      if (JSON.stringify(next) !== JSON.stringify(existing)) {
-        updated += 1;
-        await requestToPromise(store.put(next));
-      }
-    }
-  });
-
-  return {
-    inserted,
-    updated,
-    totalBuiltIn: builtIns.length,
-  };
+  return invokeCommand("sync_builtin_mappings");
 }
 
 export async function recordMappingDiscoveriesFromRaids(
   raids: readonly Raid[],
   sourceFileId: string | null,
 ): Promise<MappingDiscoverySummary> {
-  return recordMappingDiscoveries(collectMappingDiscoveriesFromRaids(raids), sourceFileId);
+  return recordMappingDiscoveries(collectMappingDiscoveriesFromRaids(raids), sourceFileId, null);
 }
 
 export async function discoverMappingsForExistingRaidsOnce(raids: readonly Raid[]): Promise<MappingDiscoverySummary | null> {
-  const settingKey = "mappingDiscovery.existingRaids.v1";
-  const completed = await getSetting<{ completedAt: string; raidCount: number }>(settingKey);
-
-  if (completed || raids.length === 0) {
-    return null;
-  }
-
-  const summary = await recordMappingDiscoveriesFromRaids(raids, "existing-local-raids");
-  await putSetting(settingKey, {
-    completedAt: new Date().toISOString(),
-    raidCount: raids.length,
-  });
-  return summary;
+  void raids;
+  return null;
 }
 
 export async function rediscoverMappingsForExistingRaids(raids: readonly Raid[]): Promise<MappingDiscoverySummary> {
@@ -97,51 +69,59 @@ export async function rediscoverMappingsForExistingRaids(raids: readonly Raid[])
 export async function recordMappingDiscoveries(
   entries: readonly MappingDiscoveryEntry[],
   sourceFileId: string | null,
+  scannerVersion: string | null = CURRENT_MAPPING_SCANNER_VERSION,
 ): Promise<MappingDiscoverySummary> {
   const now = new Date().toISOString();
   const grouped = groupDiscoveryEntries(entries);
-  const summary: MappingDiscoverySummary = {
-    newIds: 0,
-    rediscoveredIds: 0,
-    autoConfirmed: 0,
-    unconfirmed: 0,
-    conflicts: 0,
-    processedOccurrences: entries.length,
-  };
+  const mappings = await getAllMappings();
+  const byId = new Map(mappings.map((mapping) => [mapping.id, mapping]));
+  const summary = createEmptyDiscoverySummary(scannerVersion);
+  summary.discoveredIds = grouped.length;
 
-  await runMappingTransaction(async (store) => {
-    for (const entry of grouped) {
-      const existing = ((await requestToPromise(store.get(entry.id))) as MappingRecord | undefined) ?? null;
+  for (const entry of grouped) {
+    const existing = byId.get(entry.id) ?? null;
 
-      if (!existing) {
-        const created = createDiscoveredMappingRecord(entry, sourceFileId, now);
-        summary.newIds += 1;
-        incrementStatusSummary(summary, created.status);
-        await requestToPromise(store.put(created));
-        continue;
-      }
-
-      const next = mergeDiscoveryIntoMapping(existing, entry, sourceFileId, now);
-
-      summary.rediscoveredIds += 1;
-      incrementStatusSummary(summary, next.status);
-
-      if (existing.status !== "conflict" && next.status === "conflict") {
-        summary.conflicts += 1;
-      }
-
-      await requestToPromise(store.put(next));
+    if (!existing) {
+      const created = createDiscoveredMappingRecord(entry, sourceFileId, now);
+      summary.newIds += 1;
+      incrementStatusSummary(summary, created.status);
+      byId.set(created.id, created);
+      continue;
     }
-  });
 
+    const next = mergeDiscoveryIntoMapping(existing, entry, sourceFileId, now);
+
+    summary.rediscoveredIds += 1;
+    incrementStatusSummary(summary, next.status);
+
+    if (existing.status !== "conflict" && next.status === "conflict") {
+      summary.conflicts += 1;
+    }
+
+    byId.set(next.id, next);
+  }
+
+  const patternResult = applyPatternInference(Array.from(byId.values()), now);
+  await persistMappings(patternResult.mappings);
+  summary.patternInferred = patternResult.inferredCount;
+  summary.processedOccurrences = grouped.reduce((total, entry) => total + entry.occurrenceCount, 0);
+  summary.nameCandidates = grouped.reduce(
+    (total, entry) => total + entry.candidates.filter((candidate) => candidate.source !== "blueprint").length,
+    0,
+  );
+  summary.blueprintCandidates = grouped.reduce(
+    (total, entry) => total + entry.candidates.filter((candidate) => candidate.source === "blueprint").length,
+    0,
+  );
+  summary.evidenceRecords = grouped.reduce((total, entry) => total + entry.evidence.length, 0);
   return summary;
 }
 
 export async function saveMapping(input: SaveMappingInput): Promise<MappingRecord> {
   const now = new Date().toISOString();
-  const id = input.id.trim();
+  const identity = createMappingIdentity(input.namespace, input.rawId, input.namespace === "gameplay_tag");
 
-  if (!id) {
+  if (!identity) {
     throw new Error("Mapping ID is required.");
   }
 
@@ -149,127 +129,112 @@ export async function saveMapping(input: SaveMappingInput): Promise<MappingRecor
     throw new Error("Mapping name is required.");
   }
 
-  let saved: MappingRecord | null = null;
+  const mappings = await getAllMappings();
+  const existing = mappings.find((mapping) => mapping.id === identity.id) ?? null;
+  const base = existing ?? createUserMappingRecord(identity.namespace, identity.rawId, input.category, now);
+  const saved: MappingRecord = {
+    ...base,
+    namespace: identity.namespace,
+    rawId: identity.rawId,
+    category: input.category,
+    name: input.name.trim(),
+    displayName: input.name.trim(),
+    userName: input.name.trim(),
+    status: input.status,
+    source: base.source === "builtin" ? "builtin" : "user",
+    aliases: normalizeAliases(input.aliases),
+    notes: input.notes?.trim() || null,
+    updatedAt: now,
+    userEdited: true,
+    confidence: input.status === "confirmed" ? "confirmed" : base.confidence,
+    confirmationType: input.status === "confirmed" ? "manual" : base.confirmationType,
+    evidence: mergeEvidence(base.evidence, {
+      type: "manual",
+      value: input.name.trim(),
+      occurrences: 1,
+      sourceFileId: null,
+      observedName: input.name.trim(),
+    }),
+  };
 
-  await runMappingTransaction(async (store) => {
-    const existing = ((await requestToPromise(store.get(id))) as MappingRecord | undefined) ?? null;
-    const base = existing ?? createUserMappingRecord(id, input.category, now);
-    const next: MappingRecord = {
-      ...base,
-      category: input.category,
-      name: input.name.trim(),
-      userName: input.name.trim(),
-      status: input.status,
-      source: base.source === "builtin" ? "builtin" : "user",
-      aliases: normalizeAliases(input.aliases),
-      notes: input.notes?.trim() || null,
-      updatedAt: now,
-      userEdited: true,
-      confidence: input.status === "confirmed" ? "high" : base.confidence,
-      evidence: mergeEvidence(base.evidence, {
-        type: "user",
-        value: input.name.trim(),
-        occurrences: 1,
-        sourceFileId: null,
-      }),
-    };
-
-    saved = next;
-    await requestToPromise(store.put(next));
-  });
-
-  if (!saved) {
-    throw new Error("Failed to save mapping.");
-  }
-
+  await persistMappings(upsertMappingRecord(mappings, saved));
   return saved;
 }
 
 export async function resetOrDeleteMapping(id: string): Promise<"deleted" | "reset"> {
-  let action: "deleted" | "reset" = "deleted";
+  const mappings = await getAllMappings();
+  const existing = mappings.find((mapping) => mapping.id === id) ?? null;
   const now = new Date().toISOString();
 
-  await runMappingTransaction(async (store) => {
-    const existing = ((await requestToPromise(store.get(id))) as MappingRecord | undefined) ?? null;
+  if (!existing) {
+    return "deleted";
+  }
 
-    if (!existing) {
-      return;
-    }
+  if (existing.builtinName) {
+    await persistMappings(
+      upsertMappingRecord(mappings, {
+        ...existing,
+        name: existing.builtinName,
+        userName: null,
+        status: "confirmed",
+        source: "builtin",
+        aliases: [],
+        notes: null,
+        confidence: "high",
+        updatedAt: now,
+        userEdited: false,
+      }),
+    );
+    return "reset";
+  }
 
-    if (existing.builtinName) {
-      action = "reset";
-      await requestToPromise(
-        store.put({
-          ...existing,
-          name: existing.builtinName,
-          userName: null,
-          status: "confirmed",
-          source: "builtin",
-          aliases: [],
-          notes: null,
-          confidence: "high",
-          updatedAt: now,
-          userEdited: false,
-        } satisfies MappingRecord),
-      );
-      return;
-    }
+  if (existing.occurrenceCount > 0 || existing.sourceFileIds.length > 0) {
+    await persistMappings(
+      upsertMappingRecord(mappings, {
+        ...existing,
+        name: null,
+        userName: null,
+        status: "unconfirmed",
+        source: existing.source === "user" ? "log" : existing.source,
+        aliases: [],
+        notes: null,
+        confidence: existing.confidence ?? "low",
+        updatedAt: now,
+        userEdited: false,
+      }),
+    );
+    return "reset";
+  }
 
-    if (existing.occurrenceCount > 0 || existing.sourceFileIds.length > 0) {
-      action = "reset";
-      await requestToPromise(
-        store.put({
-          ...existing,
-          name: null,
-          userName: null,
-          status: "unconfirmed",
-          source: existing.source === "user" ? "log" : existing.source,
-          aliases: [],
-          notes: null,
-          confidence: existing.confidence ?? "low",
-          updatedAt: now,
-          userEdited: false,
-        } satisfies MappingRecord),
-      );
-      return;
-    }
-
-    await requestToPromise(store.delete(id));
-  });
-
-  return action;
+  await persistMappings(mappings.filter((mapping) => mapping.id !== id));
+  return "deleted";
 }
 
 export async function bulkUpdateMappingCategory(ids: readonly string[], category: MappingCategory): Promise<number> {
   const now = new Date().toISOString();
+  const idSet = new Set(ids);
   let updated = 0;
-
-  await runMappingTransaction(async (store) => {
-    for (const id of ids) {
-      const existing = ((await requestToPromise(store.get(id))) as MappingRecord | undefined) ?? null;
-
-      if (!existing) {
-        continue;
-      }
-
-      updated += 1;
-      await requestToPromise(
-        store.put({
-          ...existing,
-          category,
-          updatedAt: now,
-          userEdited: true,
-          evidence: mergeEvidence(existing.evidence, {
-            type: "user",
-            value: `category:${category}`,
-            occurrences: 1,
-            sourceFileId: null,
-          }),
-        } satisfies MappingRecord),
-      );
+  const mappings = (await getAllMappings()).map((mapping) => {
+    if (!idSet.has(mapping.id)) {
+      return mapping;
     }
+
+    updated += 1;
+    return {
+      ...mapping,
+      category,
+      updatedAt: now,
+      userEdited: true,
+      evidence: mergeEvidence(mapping.evidence, {
+        type: "user",
+        value: `category:${category}`,
+        occurrences: 1,
+        sourceFileId: null,
+      }),
+    };
   });
 
+  await persistMappings(mappings);
   return updated;
 }
 
@@ -309,6 +274,8 @@ export function validateMappingBackupPayload(value: unknown): MappingBackupPaylo
 
 export async function mergeImportedMappings(mappings: readonly MappingRecord[]): Promise<MappingImportSummary> {
   const now = new Date().toISOString();
+  const existingMappings = await getAllMappings();
+  const byId = new Map(existingMappings.map((mapping) => [mapping.id, mapping]));
   const summary: MappingImportSummary = {
     imported: mappings.length,
     inserted: 0,
@@ -317,38 +284,35 @@ export async function mergeImportedMappings(mappings: readonly MappingRecord[]):
     kept: 0,
   };
 
-  await runMappingTransaction(async (store) => {
-    for (const incoming of mappings) {
-      const existing = ((await requestToPromise(store.get(incoming.id))) as MappingRecord | undefined) ?? null;
-      const normalizedIncoming = normalizeImportedMapping(incoming, now);
+  for (const incoming of mappings) {
+    const existing = byId.get(incoming.id) ?? null;
+    const normalizedIncoming = normalizeImportedMapping(incoming, now);
 
-      if (!existing) {
-        summary.inserted += 1;
-        await requestToPromise(store.put(normalizedIncoming));
-        continue;
-      }
-
-      const existingDisplayName = getEffectiveMappingName(existing);
-      const incomingDisplayName = getEffectiveMappingName(normalizedIncoming);
-
-      if (existing.userEdited && incomingDisplayName && existingDisplayName && existingDisplayName !== incomingDisplayName) {
-        summary.conflicts += 1;
-        await requestToPromise(
-          store.put({
-            ...existing,
-            status: "conflict",
-            candidateNames: mergeCandidateName(existing.candidateNames, incomingDisplayName, "imported", now),
-            updatedAt: now,
-          } satisfies MappingRecord),
-        );
-        continue;
-      }
-
-      summary.updated += 1;
-      await requestToPromise(store.put(mergeImportedMapping(existing, normalizedIncoming, now)));
+    if (!existing) {
+      summary.inserted += 1;
+      byId.set(normalizedIncoming.id, normalizedIncoming);
+      continue;
     }
-  });
 
+    const existingDisplayName = getEffectiveMappingName(existing);
+    const incomingDisplayName = getEffectiveMappingName(normalizedIncoming);
+
+    if (existing.userEdited && incomingDisplayName && existingDisplayName && existingDisplayName !== incomingDisplayName) {
+      summary.conflicts += 1;
+      byId.set(existing.id, {
+        ...existing,
+        status: "conflict",
+        candidateNames: mergeCandidateName(existing.candidateNames, incomingDisplayName, "imported", now),
+        updatedAt: now,
+      });
+      continue;
+    }
+
+    summary.updated += 1;
+    byId.set(existing.id, mergeImportedMapping(existing, normalizedIncoming, now));
+  }
+
+  await persistMappings(Array.from(byId.values()));
   return summary;
 }
 
@@ -369,6 +333,9 @@ export function summarizeMappings(mappings: readonly MappingRecord[]): MappingSu
   return {
     total: mappings.length,
     confirmed: mappings.filter((mapping) => mapping.status === "confirmed").length,
+    typed: mappings.filter((mapping) => mapping.status === "typed").length,
+    inferred: mappings.filter((mapping) => mapping.status === "inferred").length,
+    unresolved: mappings.filter((mapping) => mapping.status === "unresolved").length,
     unconfirmed: mappings.filter((mapping) => mapping.status === "unconfirmed").length,
     conflict: mappings.filter((mapping) => mapping.status === "conflict").length,
     byCategory,
@@ -376,67 +343,214 @@ export function summarizeMappings(mappings: readonly MappingRecord[]): MappingSu
   };
 }
 
-function mergeBuiltInMapping(existing: MappingRecord, builtIn: MappingRecord): MappingRecord {
-  const next: MappingRecord = {
-    ...existing,
-    builtinName: builtIn.builtinName,
-    suggestedCategory: existing.suggestedCategory ?? builtIn.category,
-    evidence: mergeEvidence(existing.evidence, builtIn.evidence[0]),
-  };
-
-  if (!existing.userEdited) {
-    next.name = builtIn.name;
-    next.category = existing.source === "log" && existing.category !== builtIn.category ? existing.category : builtIn.category;
-    next.status = "confirmed";
-    next.source = "builtin";
-    next.confidence = "high";
-  }
-
-  return next;
+async function persistMappings(mappings: MappingRecord[]): Promise<void> {
+  await invokeCommand("replace_mappings", { mappings });
 }
 
-function groupDiscoveryEntries(entries: readonly MappingDiscoveryEntry[]): Array<MappingDiscoveryEntry & { occurrenceCount: number }> {
-  const byId = new Map<string, MappingDiscoveryEntry & { occurrenceCount: number }>();
+function createEmptyDiscoverySummary(scannerVersion: string | null): MappingDiscoverySummary {
+  return {
+    scannerVersion,
+    discoveredIds: 0,
+    newIds: 0,
+    rediscoveredIds: 0,
+    nameCandidates: 0,
+    blueprintCandidates: 0,
+    evidenceRecords: 0,
+    autoConfirmed: 0,
+    typed: 0,
+    inferred: 0,
+    unresolved: 0,
+    unconfirmed: 0,
+    conflicts: 0,
+    patternInferred: 0,
+    processedOccurrences: 0,
+  };
+}
+
+function upsertMappingRecord(mappings: readonly MappingRecord[], next: MappingRecord): MappingRecord[] {
+  const found = mappings.some((mapping) => mapping.id === next.id);
+
+  if (!found) {
+    return [...mappings, next];
+  }
+
+  return mappings.map((mapping) => (mapping.id === next.id ? next : mapping));
+}
+
+interface GroupedDiscoveryEntry {
+  id: string;
+  namespace: MappingNamespace;
+  rawId: string;
+  category: MappingCategory;
+  subcategory: string | null;
+  suggestedCategory: MappingCategory | null;
+  confidence: MappingConfidence;
+  autoConfirm: boolean;
+  occurrenceCount: number;
+  rawBlueprint: string | null;
+  internalName: string | null;
+  canonicalInternalName: string | null;
+  candidates: MappingDiscoveryCandidate[];
+  evidence: MappingEvidence[];
+}
+
+function groupDiscoveryEntries(entries: readonly MappingDiscoveryEntry[]): GroupedDiscoveryEntry[] {
+  const byId = new Map<string, GroupedDiscoveryEntry>();
 
   entries.forEach((entry) => {
-    const current = byId.get(entry.id);
+    const identity =
+      identityFromMappingInput({
+        id: entry.id,
+        namespace: entry.namespace,
+        rawId: entry.rawId,
+        category: entry.category,
+      }) ?? null;
 
-    if (!current) {
-      byId.set(entry.id, { ...entry, occurrenceCount: 1 });
+    if (!identity) {
       return;
     }
 
-    current.occurrenceCount += 1;
+    const occurrenceCount = positiveInteger(entry.occurrences);
+    const current =
+      byId.get(identity.id) ??
+      ({
+        id: identity.id,
+        namespace: identity.namespace,
+        rawId: identity.rawId,
+        category: entry.category,
+        subcategory: entry.subcategory ?? null,
+        suggestedCategory: entry.suggestedCategory ?? entry.category,
+        confidence: entry.confidence ?? "low",
+        autoConfirm: entry.autoConfirm === true,
+        occurrenceCount: 0,
+        rawBlueprint: null,
+        internalName: null,
+        canonicalInternalName: null,
+        candidates: [],
+        evidence: [],
+      } satisfies GroupedDiscoveryEntry);
 
-    if (!current.candidateName && entry.candidateName) {
-      current.candidateName = entry.candidateName;
+    current.occurrenceCount += occurrenceCount;
+    current.suggestedCategory ??= entry.suggestedCategory ?? entry.category;
+    current.subcategory ??= entry.subcategory ?? null;
+    current.confidence = strongestConfidence(current.confidence, entry.confidence ?? "low");
+    current.autoConfirm = current.autoConfirm || entry.autoConfirm === true;
+    current.internalName ??= entry.internalName ?? null;
+    current.canonicalInternalName ??= entry.canonicalInternalName ?? null;
+    const evidenceToMerge: MappingEvidence[] = [
+      {
+        type: normalizeEvidenceType(entry.evidenceType),
+        value: entry.candidateName ?? entry.rawBlueprint ?? null,
+        occurrences: occurrenceCount,
+        sourceFileId: null,
+        sample: entry.sample,
+        rawContext: entry.sample,
+        observedName: entry.candidateName ?? null,
+        observedInternalName: entry.internalName ?? entry.rawBlueprint ?? null,
+        observedCategory: entry.category,
+      },
+    ];
+
+    const directCandidate = normalizeCandidateInput({
+      name: entry.candidateName ?? "",
+      occurrences: occurrenceCount,
+      source: entry.candidateSource ?? "log",
+      evidenceType: normalizeEvidenceType(entry.evidenceType),
+      confidence: entry.confidence ?? "low",
+      sample: entry.sample,
+    });
+
+    if (directCandidate) {
+      current.candidates = mergeDiscoveryCandidate(current.candidates, directCandidate);
+      evidenceToMerge.push({
+        type: directCandidate.evidenceType,
+        value: directCandidate.name,
+        occurrences: directCandidate.occurrences,
+        sourceFileId: null,
+        sample: directCandidate.sample,
+      });
     }
+
+    const blueprintCandidate = normalizeCandidateInput({
+      name: entry.rawBlueprint ?? "",
+      occurrences: occurrenceCount,
+      source: "blueprint",
+      evidenceType: "bp_class_id",
+      confidence: entry.confidence ?? "medium",
+      sample: entry.sample,
+    });
+
+    if (blueprintCandidate) {
+      current.rawBlueprint ??= blueprintCandidate.name;
+      current.candidates = mergeDiscoveryCandidate(current.candidates, blueprintCandidate);
+      evidenceToMerge.push({
+        type: normalizeEvidenceType(blueprintCandidate.evidenceType),
+        value: blueprintCandidate.name,
+        occurrences: blueprintCandidate.occurrences,
+        sourceFileId: null,
+        sample: blueprintCandidate.sample,
+      });
+    }
+
+    (entry.candidates ?? []).forEach((candidate) => {
+      const normalizedCandidate = normalizeCandidateInput(candidate);
+
+      if (!normalizedCandidate) {
+        return;
+      }
+
+      if (normalizedCandidate.source === "blueprint") {
+        current.rawBlueprint ??= normalizedCandidate.name;
+      }
+
+      current.candidates = mergeDiscoveryCandidate(current.candidates, normalizedCandidate);
+      evidenceToMerge.push({
+        type: normalizeEvidenceType(normalizedCandidate.evidenceType),
+        value: normalizedCandidate.name,
+        occurrences: normalizedCandidate.occurrences,
+        sourceFileId: null,
+        sample: normalizedCandidate.sample,
+      });
+    });
+
+    current.evidence = mergeEvidenceList(current.evidence, evidenceToMerge);
+
+    byId.set(identity.id, current);
   });
 
   return Array.from(byId.values());
 }
 
 function createDiscoveredMappingRecord(
-  entry: MappingDiscoveryEntry & { occurrenceCount?: number },
+  entry: GroupedDiscoveryEntry,
   sourceFileId: string | null,
   now: string,
 ): MappingRecord {
-  const confirmed = entry.autoConfirm === true && Boolean(entry.candidateName);
-  const name = confirmed ? entry.candidateName ?? null : null;
+  const bestNameCandidate = selectBestCandidate(entry.candidates, "name");
+  const confirmed = entry.autoConfirm === true && Boolean(bestNameCandidate);
+  const name = confirmed ? bestNameCandidate?.name ?? null : null;
+  const internalName = entry.internalName ?? selectBestCandidate(entry.candidates, "blueprint")?.name ?? entry.rawBlueprint ?? null;
 
   return {
     id: entry.id,
+    namespace: entry.namespace,
+    rawId: entry.rawId,
     category: entry.category,
+    subcategory: entry.subcategory,
     suggestedCategory: entry.suggestedCategory ?? entry.category,
     name,
+    displayName: name,
     builtinName: null,
     userName: null,
-    status: confirmed ? "confirmed" : "unconfirmed",
+    internalName,
+    canonicalInternalName: entry.canonicalInternalName ?? normalizeInternalName(internalName),
+    status: confirmed ? "confirmed" : entry.confidence === "low" ? "typed" : "unresolved",
     source: "log",
     aliases: [],
     rawBlueprint: entry.rawBlueprint ?? null,
-    confidence: entry.confidence ?? (confirmed ? "medium" : "low"),
-    occurrenceCount: entry.occurrenceCount ?? 1,
+    confidence: confirmed ? "confirmed" : entry.confidence ?? "low",
+    confirmationType: confirmed ? confirmationTypeForEvidence(bestNameCandidate?.evidenceType ?? null) : null,
+    occurrenceCount: entry.occurrenceCount,
     firstSeenAt: now,
     lastSeenAt: now,
     sourceFileIds: sourceFileId ? [sourceFileId] : [],
@@ -444,68 +558,110 @@ function createDiscoveredMappingRecord(
     updatedAt: now,
     userEdited: false,
     notes: null,
-    candidateNames: entry.candidateName && !confirmed ? mergeCandidateName([], entry.candidateName, "log", now) : [],
-    evidence: [
-      {
-        type: entry.evidenceType,
-        value: entry.candidateName ?? entry.rawBlueprint ?? null,
-        occurrences: entry.occurrenceCount ?? 1,
-        sourceFileId,
-      },
-    ],
+    candidateNames: confirmed ? [] : mergeDiscoveryCandidatesIntoMapping([], entry.candidates, now, sourceFileId),
+    evidence: entry.evidence.map((evidence) => ({ ...evidence, sourceFileId })),
   };
 }
 
 function mergeDiscoveryIntoMapping(
   existing: MappingRecord,
-  entry: MappingDiscoveryEntry & { occurrenceCount?: number },
+  entry: GroupedDiscoveryEntry,
   sourceFileId: string | null,
   now: string,
 ): MappingRecord {
-  const occurrenceCount = entry.occurrenceCount ?? 1;
+  const sourceAlreadySeen = Boolean(sourceFileId && existing.sourceFileIds.includes(sourceFileId));
+  const occurrenceCount = sourceAlreadySeen ? 0 : entry.occurrenceCount;
   const next: MappingRecord = {
     ...existing,
+    namespace: existing.namespace ?? entry.namespace,
+    rawId: existing.rawId ?? entry.rawId,
+    subcategory: existing.subcategory ?? entry.subcategory,
     suggestedCategory: existing.suggestedCategory ?? entry.suggestedCategory ?? entry.category,
     occurrenceCount: existing.occurrenceCount + occurrenceCount,
     firstSeenAt: existing.firstSeenAt ?? now,
     lastSeenAt: now,
     sourceFileIds: mergeUnique(existing.sourceFileIds, sourceFileId ? [sourceFileId] : []),
     rawBlueprint: existing.rawBlueprint ?? entry.rawBlueprint ?? null,
+    internalName: existing.internalName ?? entry.internalName ?? entry.rawBlueprint ?? null,
+    canonicalInternalName: existing.canonicalInternalName ?? entry.canonicalInternalName ?? normalizeInternalName(entry.internalName ?? entry.rawBlueprint),
     updatedAt: now,
-    evidence: mergeEvidence(existing.evidence, {
-      type: entry.evidenceType,
-      value: entry.candidateName ?? entry.rawBlueprint ?? null,
-      occurrences: occurrenceCount,
-      sourceFileId,
-    }),
+    evidence: mergeEvidenceList(
+      existing.evidence,
+      entry.evidence.map((evidence) => ({
+        ...evidence,
+        occurrences: sourceAlreadySeen ? 0 : evidence.occurrences,
+        sourceFileId,
+      })),
+    ),
   };
 
-  if (entry.candidateName) {
-    const displayName = getEffectiveMappingName(existing);
+  next.candidateNames = mergeDiscoveryCandidatesIntoMapping(existing.candidateNames, entry.candidates, now, sourceFileId);
 
-    if (entry.autoConfirm && existing.status === "confirmed" && displayName && displayName !== entry.candidateName && !existing.userEdited) {
-      next.status = "conflict";
-    } else if (!displayName || displayName !== entry.candidateName) {
-      next.candidateNames = mergeCandidateName(existing.candidateNames, entry.candidateName, "log", now);
-    }
+  const bestNameCandidate = selectBestCandidate(entry.candidates, "name");
+  const displayName = getEffectiveMappingName(existing);
+
+  if (
+    entry.autoConfirm &&
+    bestNameCandidate &&
+    existing.status === "confirmed" &&
+    displayName &&
+    displayName !== bestNameCandidate.name &&
+    !existing.userEdited
+  ) {
+    next.status = "conflict";
+    next.candidateNames = mergeCandidateName(
+      next.candidateNames,
+      bestNameCandidate.name,
+      bestNameCandidate.source,
+      now,
+      bestNameCandidate.occurrences,
+      sourceFileId,
+    );
+    next.evidence = mergeEvidence(next.evidence, {
+      type: "direct_name_id",
+      value: bestNameCandidate.name,
+      occurrences: bestNameCandidate.occurrences,
+      sourceFileId,
+      sample: bestNameCandidate.sample,
+      observedName: bestNameCandidate.name,
+      observedCategory: entry.category,
+    });
+    return next;
+  }
+
+  if (entry.autoConfirm && bestNameCandidate && !existing.userEdited && existing.status !== "confirmed" && existing.status !== "conflict") {
+    next.name = bestNameCandidate.name;
+    next.displayName = bestNameCandidate.name;
+    next.status = "confirmed";
+    next.confidence = "confirmed";
+    next.confirmationType = confirmationTypeForEvidence(bestNameCandidate.evidenceType);
   }
 
   return next;
 }
 
-function createUserMappingRecord(id: string, category: MappingCategory, now: string): MappingRecord {
+function createUserMappingRecord(namespace: MappingNamespace, rawId: string, category: MappingCategory, now: string): MappingRecord {
+  const id = createMappingKey(namespace, rawId, namespace === "gameplay_tag") ?? `${namespace}:${rawId}`;
+
   return {
     id,
+    namespace,
+    rawId,
     category,
+    subcategory: null,
     suggestedCategory: category,
     name: null,
+    displayName: null,
     builtinName: null,
     userName: null,
+    internalName: null,
+    canonicalInternalName: null,
     status: "confirmed",
     source: "user",
     aliases: [],
     rawBlueprint: null,
-    confidence: "high",
+    confidence: "confirmed",
+    confirmationType: "manual",
     occurrenceCount: 0,
     firstSeenAt: null,
     lastSeenAt: null,
@@ -520,14 +676,33 @@ function createUserMappingRecord(id: string, category: MappingCategory, now: str
 }
 
 function normalizeImportedMapping(mapping: MappingRecord, now: string): MappingRecord {
+  const identity =
+    identityFromMappingInput({
+      id: mapping.id,
+      namespace: mapping.namespace,
+      rawId: mapping.rawId,
+      category: mapping.category,
+    }) ?? createMappingIdentity(namespaceForCategory(mapping.category), mapping.id, mapping.category === "bodyPart");
+  const id = identity?.id ?? String(mapping.id);
+
   return {
     ...mapping,
-    id: String(mapping.id),
+    id,
+    namespace: identity?.namespace ?? mapping.namespace ?? namespaceForCategory(mapping.category),
+    rawId: identity?.rawId ?? mapping.rawId ?? String(mapping.id),
+    subcategory: mapping.subcategory ?? null,
+    displayName: mapping.displayName ?? mapping.name ?? mapping.userName ?? mapping.builtinName ?? null,
+    internalName: mapping.internalName ?? mapping.rawBlueprint ?? null,
+    canonicalInternalName: mapping.canonicalInternalName ?? normalizeInternalName(mapping.internalName ?? mapping.rawBlueprint),
+    confirmationType: mapping.confirmationType ?? null,
     source: mapping.source === "builtin" ? "imported" : mapping.source,
     createdAt: mapping.createdAt || now,
     updatedAt: now,
     aliases: normalizeAliases(mapping.aliases ?? []),
-    candidateNames: mapping.candidateNames ?? [],
+    candidateNames: (mapping.candidateNames ?? []).map((candidate) => ({
+      ...candidate,
+      sourceFileIds: candidate.sourceFileIds ?? [],
+    })),
     evidence: mapping.evidence ?? [],
     sourceFileIds: mapping.sourceFileIds ?? [],
     userEdited: mapping.userEdited || mapping.source === "user" || mapping.source === "imported",
@@ -539,15 +714,22 @@ function mergeImportedMapping(existing: MappingRecord, incoming: MappingRecord, 
 
   return {
     ...existing,
+    namespace: existing.namespace ?? incoming.namespace,
+    rawId: existing.rawId ?? incoming.rawId,
     category: incoming.category,
+    subcategory: incoming.subcategory ?? existing.subcategory,
     suggestedCategory: existing.suggestedCategory ?? incoming.suggestedCategory,
     name: incomingName ?? existing.name,
+    displayName: incomingName ?? existing.displayName,
     userName: incoming.userEdited ? incomingName : existing.userName,
+    internalName: existing.internalName ?? incoming.internalName,
+    canonicalInternalName: existing.canonicalInternalName ?? incoming.canonicalInternalName,
     status: incoming.status,
     source: incoming.source === "builtin" ? existing.source : incoming.source,
     aliases: mergeUnique(existing.aliases, incoming.aliases),
     rawBlueprint: existing.rawBlueprint ?? incoming.rawBlueprint,
     confidence: incoming.confidence ?? existing.confidence,
+    confirmationType: incoming.confirmationType ?? existing.confirmationType,
     sourceFileIds: mergeUnique(existing.sourceFileIds, incoming.sourceFileIds),
     userEdited: existing.userEdited || incoming.userEdited,
     notes: incoming.notes ?? existing.notes,
@@ -558,17 +740,43 @@ function mergeImportedMapping(existing: MappingRecord, incoming: MappingRecord, 
 }
 
 function getEffectiveMappingName(mapping: MappingRecord): string | null {
-  return mapping.userName ?? mapping.name ?? mapping.builtinName ?? null;
+  return mapping.userName ?? mapping.displayName ?? mapping.name ?? mapping.builtinName ?? null;
 }
 
 function incrementStatusSummary(summary: MappingDiscoverySummary, status: MappingStatus): void {
   if (status === "confirmed") {
     summary.autoConfirmed += 1;
+  } else if (status === "typed") {
+    summary.typed += 1;
+  } else if (status === "inferred") {
+    summary.inferred += 1;
+  } else if (status === "unresolved") {
+    summary.unresolved += 1;
   } else if (status === "unconfirmed") {
     summary.unconfirmed += 1;
   } else {
     summary.conflicts += 1;
   }
+}
+
+function mergeDiscoveryCandidatesIntoMapping(
+  existing: readonly MappingCandidateName[],
+  incoming: readonly MappingDiscoveryCandidate[],
+  now: string,
+  sourceFileId: string | null,
+): MappingCandidateName[] {
+  return incoming.reduce(
+    (next, candidate) =>
+      mergeCandidateName(
+        next,
+        candidate.name,
+        candidate.source,
+        now,
+        candidate.occurrences,
+        sourceFileId,
+      ),
+    [...existing],
+  );
 }
 
 function mergeCandidateNames(
@@ -577,7 +785,16 @@ function mergeCandidateNames(
   now: string,
 ): MappingCandidateName[] {
   return incoming.reduce(
-    (next, candidate) => mergeCandidateName(next, candidate.name, candidate.source, now, candidate.occurrences),
+    (next, candidate) =>
+      mergeCandidateName(
+        next,
+        candidate.name,
+        candidate.source,
+        now,
+        candidate.occurrences,
+        null,
+        candidate.sourceFileIds,
+      ),
     [...existing],
   );
 }
@@ -585,11 +802,14 @@ function mergeCandidateNames(
 function mergeCandidateName(
   candidates: readonly MappingCandidateName[],
   name: string,
-  source: MappingSource,
+  source: MappingCandidateSource,
   now: string,
   occurrences = 1,
+  sourceFileId: string | null = null,
+  sourceFileIds: readonly string[] = [],
 ): MappingCandidateName[] {
   const current = candidates.find((candidate) => candidate.name === name);
+  const nextSourceFileIds = mergeUnique(sourceFileIds, sourceFileId ? [sourceFileId] : []);
 
   if (!current) {
     return [
@@ -600,16 +820,22 @@ function mergeCandidateName(
         source,
         firstSeenAt: now,
         lastSeenAt: now,
+        sourceFileIds: nextSourceFileIds,
       },
     ];
   }
+
+  const currentSourceFileIds = current.sourceFileIds ?? [];
+  const alreadySeenInSource = Boolean(sourceFileId && currentSourceFileIds.includes(sourceFileId));
+  const occurrenceIncrement = alreadySeenInSource ? 0 : occurrences;
 
   return candidates.map((candidate) =>
     candidate.name === name
       ? {
           ...candidate,
-          occurrences: candidate.occurrences + occurrences,
+          occurrences: candidate.occurrences + occurrenceIncrement,
           lastSeenAt: now,
+          sourceFileIds: mergeUnique(currentSourceFileIds, nextSourceFileIds),
         }
       : candidate,
   );
@@ -628,17 +854,152 @@ function mergeEvidenceList(existing: readonly MappingEvidence[], incoming: reado
     );
 
     if (currentIndex < 0) {
-      next.push(evidence);
+      if (evidence.occurrences > 0) {
+        next.push(evidence);
+      }
+      return;
+    }
+
+    if (evidence.occurrences <= 0) {
       return;
     }
 
     next[currentIndex] = {
       ...next[currentIndex],
-      occurrences: next[currentIndex].occurrences + evidence.occurrences,
+      occurrences:
+        evidence.sourceFileId && next[currentIndex].sourceFileId === evidence.sourceFileId
+          ? Math.max(next[currentIndex].occurrences, evidence.occurrences)
+          : next[currentIndex].occurrences + evidence.occurrences,
+      sample: next[currentIndex].sample ?? evidence.sample,
     };
   });
 
   return next.slice(-20);
+}
+
+function normalizeCandidateInput(candidate: MappingDiscoveryCandidate): MappingDiscoveryCandidate | null {
+  const name = candidate.name.trim();
+
+  if (!name || name === "—") {
+    return null;
+  }
+
+  if (candidate.source === "blueprint" && !name.startsWith("BP_")) {
+    return null;
+  }
+
+  if (candidate.source === "blueprint" && isIgnoredMappingBlueprint(name)) {
+    return null;
+  }
+
+  if (candidate.source !== "blueprint" && (name.startsWith("BP_") || /^-?\d+(?:\.\d+)?$/.test(name))) {
+    return null;
+  }
+
+  return {
+    ...candidate,
+    name,
+    occurrences: positiveInteger(candidate.occurrences),
+  };
+}
+
+function mergeDiscoveryCandidate(
+  candidates: readonly MappingDiscoveryCandidate[],
+  incoming: MappingDiscoveryCandidate,
+): MappingDiscoveryCandidate[] {
+  const current = candidates.find((candidate) => candidate.name === incoming.name && candidate.source === incoming.source);
+
+  if (!current) {
+    return [...candidates, incoming];
+  }
+
+  return candidates.map((candidate) =>
+    candidate.name === incoming.name && candidate.source === incoming.source
+      ? {
+          ...candidate,
+          occurrences: candidate.occurrences + incoming.occurrences,
+          confidence: strongestConfidence(candidate.confidence, incoming.confidence),
+          evidenceType: strongestEvidence(candidate.evidenceType, incoming.evidenceType),
+          sample: candidate.sample ?? incoming.sample,
+        }
+      : candidate,
+  );
+}
+
+function selectBestCandidate(
+  candidates: readonly MappingDiscoveryCandidate[],
+  kind: "name" | "blueprint",
+): MappingDiscoveryCandidate | null {
+  const matching = candidates.filter((candidate) => (kind === "blueprint") === (candidate.source === "blueprint"));
+
+  return (
+    matching
+      .slice()
+      .sort(
+        (left, right) =>
+          evidenceRank(right.evidenceType) - evidenceRank(left.evidenceType) ||
+          right.occurrences - left.occurrences ||
+          left.name.localeCompare(right.name),
+      )[0] ?? null
+  );
+}
+
+function positiveInteger(value: number | null | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 1) {
+    return 1;
+  }
+
+  return Math.max(1, Math.floor(value));
+}
+
+function strongestConfidence(left: MappingConfidence, right: MappingConfidence): MappingConfidence {
+  const rank: Record<NonNullable<MappingConfidence>, number> = {
+    confirmed: 4,
+    high: 3,
+    medium: 2,
+    low: 1,
+  };
+
+  if (!left) {
+    return right;
+  }
+
+  if (!right) {
+    return left;
+  }
+
+  return rank[right] > rank[left] ? right : left;
+}
+
+function strongestEvidence(left: MappingEvidenceType, right: MappingEvidenceType): MappingEvidenceType {
+  return evidenceRank(right) > evidenceRank(left) ? right : left;
+}
+
+function evidenceRank(type: MappingEvidenceType): number {
+  const rank: Record<MappingEvidenceType, number> = {
+    confirmed_multi: 120,
+    manual: 115,
+    direct_name_id: 110,
+    item_info: 108,
+    "direct-id-name": 110,
+    bp_class_id: 90,
+    map_info: 88,
+    "battle-result": 88,
+    gid_correlation: 75,
+    typed_field: 50,
+    contextual: 35,
+    id_pattern: 20,
+    "direct-name": 90,
+    "same-event": 35,
+    "same-instance": 35,
+    blueprint: 50,
+    proximity: 20,
+    "id-usage": 10,
+    user: 100,
+    imported: 90,
+  };
+
+  return rank[type];
 }
 
 function normalizeAliases(aliases: readonly string[]): string[] {
@@ -659,6 +1020,7 @@ function createCategoryCounter(): Record<MappingCategory, number> {
   return {
     weapon: 0,
     ammo: 0,
+    magazine: 0,
     armor: 0,
     helmet: 0,
     rig: 0,
@@ -668,6 +1030,8 @@ function createCategoryCounter(): Record<MappingCategory, number> {
     throwable: 0,
     medical: 0,
     provision: 0,
+    food: 0,
+    drink: 0,
     key: 0,
     currency: 0,
     loot: 0,
@@ -676,6 +1040,66 @@ function createCategoryCounter(): Record<MappingCategory, number> {
     equipment: 0,
     other: 0,
   };
+}
+
+function normalizeEvidenceType(type: MappingEvidenceType): MappingEvidenceType {
+  if (type === "direct-id-name") {
+    return "direct_name_id";
+  }
+
+  if (type === "battle-result") {
+    return "map_info";
+  }
+
+  if (type === "id-usage") {
+    return "typed_field";
+  }
+
+  if (type === "blueprint") {
+    return "bp_class_id";
+  }
+
+  if (type === "same-event" || type === "same-instance" || type === "proximity") {
+    return "contextual";
+  }
+
+  if (type === "user") {
+    return "manual";
+  }
+
+  return type;
+}
+
+function confirmationTypeForEvidence(type: MappingEvidenceType | null): string | null {
+  if (!type) {
+    return null;
+  }
+
+  const normalized = normalizeEvidenceType(type);
+
+  if (normalized === "manual") {
+    return "manual";
+  }
+
+  if (normalized === "direct_name_id" || normalized === "item_info" || normalized === "map_info") {
+    return "direct";
+  }
+
+  if (normalized === "confirmed_multi") {
+    return "multi_source";
+  }
+
+  return null;
+}
+
+function normalizeInternalName(value: string | null | undefined): string | null {
+  const normalized = value?.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.replace(/_C_\d+$/, "").replace(/_C$/, "");
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

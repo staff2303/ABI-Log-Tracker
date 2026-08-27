@@ -57,7 +57,7 @@ export function DashboardPage({
       <section className="panel p-3">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-[11px] uppercase text-abi-muted">Local IndexedDB</p>
+            <p className="text-[11px] uppercase text-abi-muted">Local SQLite</p>
             <h1 className="mt-1 text-xl font-semibold text-abi-text">Cumulative Dashboard</h1>
           </div>
           <div className="grid grid-cols-3 gap-2 text-right text-xs sm:min-w-[360px]">

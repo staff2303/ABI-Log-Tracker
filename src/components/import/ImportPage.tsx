@@ -54,6 +54,7 @@ export function ImportPage({ onImported }: ImportPageProps) {
           raids: decoder.snapshot.raids,
           fileHash,
           file,
+          mappingDiscoveries: decoder.snapshot.mappingDiscoveries,
         });
 
         setOutcome({ type: "completed", summary });
@@ -64,7 +65,7 @@ export function ImportPage({ onImported }: ImportPageProps) {
         setOutcome({ type: "failed", message });
       }
     },
-    [decoder.snapshot.debug, decoder.snapshot.raids, onImported],
+    [decoder.snapshot.debug, decoder.snapshot.mappingDiscoveries, decoder.snapshot.raids, onImported],
   );
 
   useEffect(() => {
@@ -215,21 +216,27 @@ function ImportResultPanel({ outcome }: { outcome: ImportOutcome }) {
         <div className="border border-abi-line bg-abi-black p-3">
           <p className="text-[11px] uppercase text-abi-muted">Mapping Discovery</p>
           <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+            <ResultMetric label="감지 ID" value={mappingDiscovery.discoveredIds} />
             <ResultMetric label="새 ID" value={mappingDiscovery.newIds} tone="lime" />
             <ResultMetric label="재발견" value={mappingDiscovery.rediscoveredIds} />
+            <ResultMetric label="이름 후보" value={mappingDiscovery.nameCandidates} />
+            <ResultMetric label="Blueprint" value={mappingDiscovery.blueprintCandidates} />
+            <ResultMetric label="Evidence" value={mappingDiscovery.evidenceRecords} />
             <ResultMetric label="자동 확인" value={mappingDiscovery.autoConfirmed} tone="green" />
-            <ResultMetric label="미확인" value={mappingDiscovery.unconfirmed} tone="amber" />
+            <ResultMetric label="유형 확인" value={mappingDiscovery.typed} />
+            <ResultMetric label="미해결" value={mappingDiscovery.unresolved + mappingDiscovery.unconfirmed} tone="amber" />
+            <ResultMetric label="패턴 추론" value={mappingDiscovery.patternInferred} tone="lime" />
             <ResultMetric label="충돌" value={mappingDiscovery.conflicts} tone="red" />
             <ResultMetric label="발견 횟수" value={mappingDiscovery.processedOccurrences} />
           </div>
-          {mappingDiscovery.unconfirmed > 0 && (
+          {mappingDiscovery.unresolved + mappingDiscovery.unconfirmed + mappingDiscovery.typed > 0 && (
             <button
               className="secondary-button mt-3 w-full justify-center border-abi-amber text-abi-amber"
               onClick={() => {
-                window.location.hash = "/mappings?status=unconfirmed";
+                window.location.hash = "/mappings?status=unresolved";
               }}
             >
-              미확인 매핑 확인
+              미해결 매핑 확인
             </button>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { Download, HardDrive, RotateCcw, Trash2, Upload } from "lucide-react";
+import { Download, FolderOpen, HardDrive, RotateCcw, Trash2, Upload } from "lucide-react";
 import { useRef } from "react";
 import { CURRENT_PARSER_VERSION, CURRENT_SCHEMA_VERSION, DB_NAME, DB_VERSION } from "../../db/constants";
 import type { ImportedSourceFile, ImportCommitSummary, ImportHistory, StorageInfo } from "../../db/types";
@@ -15,6 +15,7 @@ interface LocalDatabasePanelProps {
   onNavigateImport: () => void;
   onExportBackup: () => void;
   onImportBackup: (file: File) => void;
+  onOpenDatabaseFolder: () => void;
   onClearDatabase: () => void;
 }
 
@@ -27,6 +28,7 @@ export function LocalDatabasePanel({
   onNavigateImport,
   onExportBackup,
   onImportBackup,
+  onOpenDatabaseFolder,
   onClearDatabase,
 }: LocalDatabasePanelProps) {
   const backupInputRef = useRef<HTMLInputElement | null>(null);
@@ -34,10 +36,10 @@ export function LocalDatabasePanel({
   return (
     <SectionPanel
       title="Local Database"
-      eyebrow="IndexedDB"
-      action={<StatusBadge tone={storageInfo.persisted ? "green" : "muted"}>{storageInfo.persisted ? "Persisted" : "Browser Managed"}</StatusBadge>}
+      eyebrow="SQLite"
+      action={<StatusBadge tone="green">{storageInfo.journalMode ? `WAL ${storageInfo.journalMode}` : "AppData DB"}</StatusBadge>}
     >
-      <div className="grid gap-2 lg:grid-cols-[1fr_1fr_1.4fr]">
+      <div className="grid gap-2 lg:grid-cols-[1fr_1fr_1.6fr]">
         <div className="border border-abi-line bg-abi-black p-3">
           <p className="text-[11px] uppercase text-abi-muted">Database</p>
           <p className="mt-1 font-mono text-sm text-abi-text">{DB_NAME}</p>
@@ -50,23 +52,29 @@ export function LocalDatabasePanel({
           <p className="text-[11px] uppercase text-abi-muted">Storage</p>
           <div className="mt-1 flex items-center gap-2 font-mono text-sm text-abi-text">
             <HardDrive size={14} aria-hidden="true" />
-            {formatBytes(storageInfo.usage)} / {formatBytes(storageInfo.quota)}
+            {formatBytes(storageInfo.usage)}
           </div>
-          <p className="mt-2 text-xs text-abi-muted">브라우저 로컬 IndexedDB에 구조화된 전적만 저장합니다.</p>
+          <p className="mt-2 truncate text-xs text-abi-muted" title={storageInfo.dbPath ?? undefined}>
+            {storageInfo.dbPath ?? "Tauri AppData SQLite에 구조화된 전적만 저장합니다."}
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 lg:grid-cols-2 xl:grid-cols-5">
           <button className="secondary-button justify-center" onClick={onNavigateImport}>
             <Upload size={15} aria-hidden="true" />
             로그 추가
           </button>
           <button className="secondary-button justify-center" onClick={onExportBackup}>
             <Download size={15} aria-hidden="true" />
-            백업
+            DB 백업
           </button>
           <button className="secondary-button justify-center" onClick={() => backupInputRef.current?.click()}>
             <RotateCcw size={15} aria-hidden="true" />
-            복원
+            DB 복원
+          </button>
+          <button className="secondary-button justify-center" onClick={onOpenDatabaseFolder}>
+            <FolderOpen size={15} aria-hidden="true" />
+            DB 폴더
           </button>
           <button className="secondary-button justify-center border-abi-red/70 text-abi-red" onClick={onClearDatabase}>
             <Trash2 size={15} aria-hidden="true" />
@@ -76,7 +84,7 @@ export function LocalDatabasePanel({
             ref={backupInputRef}
             className="hidden"
             type="file"
-            accept="application/json,.json"
+            accept=".db,application/vnd.sqlite3,application/x-sqlite3"
             onChange={(event) => {
               const file = event.target.files?.item(0);
               if (file) {

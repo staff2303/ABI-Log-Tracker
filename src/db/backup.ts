@@ -1,44 +1,47 @@
 import { BACKUP_FORMAT, BACKUP_VERSION, CURRENT_SCHEMA_VERSION } from "./constants";
-import {
-  getAllImportedSourceFiles,
-  getAllImportHistory,
-  getAllRaids,
-  mergeStoredRaidsAndMappingsFromBackup,
-} from "./raidRepository";
+import { getAllRaids } from "./raidRepository";
 import { getAllMappings } from "./mappingRepository";
+import { loadTrackerState } from "./sqliteState";
+import { invokeCommand } from "./tauriClient";
 import type { BackupImportSummary, BackupPayload } from "./types";
 
 export async function createBackupPayload(): Promise<BackupPayload> {
+  const state = await loadTrackerState();
+
   return {
     format: BACKUP_FORMAT,
     backupVersion: BACKUP_VERSION,
     schemaVersion: CURRENT_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
     raids: await getAllRaids(),
-    imports: await getAllImportedSourceFiles(),
-    importHistory: await getAllImportHistory(),
+    imports: state.sourceFiles,
+    importHistory: state.importHistory,
     mappings: await getAllMappings(),
     settings: {},
   };
 }
 
 export async function exportBackupFile(): Promise<void> {
-  const payload = await createBackupPayload();
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  const stamp = payload.exportedAt.slice(0, 10);
-
-  anchor.href = url;
-  anchor.download = `ABITracker_Backup_${stamp}.json`;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  const result = await invokeCommand<{ path: string; bytes: number }>("export_database_backup");
+  window.alert(`DB 백업 완료\n${result.path}`);
 }
 
 export async function importBackupFile(file: File): Promise<BackupImportSummary> {
-  const text = await file.text();
-  const payload = validateBackupPayload(JSON.parse(text) as unknown);
-  return mergeStoredRaidsAndMappingsFromBackup(payload.raids, payload.imports, payload.importHistory, payload.mappings);
+  const bytes = Array.from(new Uint8Array(await file.arrayBuffer()));
+  await invokeCommand("restore_database_backup", { bytes });
+  const state = await loadTrackerState();
+
+  return {
+    discoveredRaids: state.dbInfo.raidCount,
+    insertedRaids: state.dbInfo.raidCount,
+    sameRaids: 0,
+    updatedRaids: 0,
+    keptExistingRaids: 0,
+    failedRaids: 0,
+    totalStoredRaids: state.dbInfo.raidCount,
+    importedFiles: state.sourceFiles.length,
+    importedMappings: state.mappings.length,
+  };
 }
 
 export function validateBackupPayload(value: unknown): BackupPayload {
